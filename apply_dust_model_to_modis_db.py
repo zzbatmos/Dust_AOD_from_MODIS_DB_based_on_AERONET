@@ -265,6 +265,21 @@ def derive_dust_aod(
     return dust_aod
 
 
+def enforce_daod_output_semantics(dust_aod: np.ndarray, total_aod: np.ndarray) -> np.ndarray:
+    """Apply the shared DAOD output definition.
+
+    1. If total DB AOD is missing, DAOD is NaN.
+    2. If total DB AOD is finite and > 0 but no DAOD is available, DAOD is 0.
+    3. If total DB AOD is finite and DAOD exists, keep the predicted/derived value.
+    """
+    total_aod = np.asarray(total_aod, dtype=float)
+    dust_aod = np.asarray(dust_aod, dtype=float).copy()
+    total_valid = np.isfinite(total_aod) & (total_aod > 0.0)
+    dust_aod[~np.isfinite(total_aod)] = np.nan
+    dust_aod[total_valid & ~np.isfinite(dust_aod)] = 0.0
+    return dust_aod
+
+
 def clip_fraction_grid(values: np.ndarray) -> np.ndarray:
     arr = np.asarray(values, dtype=float).copy()
     arr[np.isfinite(arr)] = np.clip(arr[np.isfinite(arr)], 0.0, 1.0)
@@ -303,9 +318,10 @@ def li_ginoux_dust_aod_with_ssa_constraint(
         & np.isfinite(ssa470)
         & (ssa412 < ssa470)
     )
-    fmf_out = np.where(valid, fmf, np.nan)
-    coarse_fraction_out = np.where(valid, coarse_fraction, np.nan)
+    fmf_out = np.where(np.isfinite(ae), fmf, np.nan)
+    coarse_fraction_out = np.where(np.isfinite(ae), coarse_fraction, np.nan)
     dust_aod_out = np.where(valid, dust_aod, np.nan)
+    dust_aod_out = enforce_daod_output_semantics(dust_aod_out, aod550)
     return fmf_out, coarse_fraction_out, dust_aod_out
 
 
@@ -631,6 +647,10 @@ def main() -> None:
         if spec.output_kind == "dust_fraction":
             dust_fraction = clip_fraction_grid(pred_grid)
             dust_aod = derive_dust_aod(dust_fraction, features_2d, source_band=args.daod_source_band)
+            dust_aod = enforce_daod_output_semantics(
+                dust_aod,
+                features_2d[f"MODIS_DB_AOD{args.daod_source_band}"],
+            )
             frac_png = args.output_dir / f"{granule_path.stem}_{spec.name}_dust_fraction.png"
             frac_stats = save_scatter_map(
                 lat2d,
@@ -648,6 +668,7 @@ def main() -> None:
         elif spec.output_kind == "dust_aod":
             dust_fraction = None
             dust_aod = np.asarray(pred_grid, dtype=float)
+            dust_aod = enforce_daod_output_semantics(dust_aod, features_2d["MODIS_DB_AOD550"])
             frac_png = None
             frac_stats = None
             dust_fraction_summary = {}
@@ -719,6 +740,7 @@ def main() -> None:
             with (here / "modis_db_dust_aod550_xgb" / "modis_db_dust_aod550_metadata.json").open("r") as handle:
                 ml_meta = json.load(handle)
             ml_dust_aod = predict_model_grid(ml_model, ml_meta, features_2d)[0]
+            ml_dust_aod = enforce_daod_output_semantics(ml_dust_aod, features_2d["MODIS_DB_AOD550"])
             ml_label = "Dust AOD (550 nm)"
         else:
             ml_log1p_row = next((row for row in summary_rows if row["model_name"] == "log1p"), None)
@@ -729,6 +751,10 @@ def main() -> None:
                     ml_log1p_meta = json.load(handle)
                 ml_log1p_fraction = clip_fraction_grid(predict_model_grid(ml_log1p_model, ml_log1p_meta, features_2d)[0])
                 ml_dust_aod = derive_dust_aod(ml_log1p_fraction, features_2d, source_band=args.daod_source_band)
+                ml_dust_aod = enforce_daod_output_semantics(
+                    ml_dust_aod,
+                    features_2d[f"MODIS_DB_AOD{args.daod_source_band}"],
+                )
                 ml_label = f"Dust AOD ({args.daod_source_band} nm proxy)"
             else:
                 ml_dust_aod = None

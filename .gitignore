@@ -17,14 +17,25 @@ temp_downloads/
 aeronet_dust_aod_allsites/
 aeronet_modis_db_comparisons/
 dust_model_application_2025-03-14/
+dust_model_application_2025-03-14_l2_semantics/
+dust_model_application_2025-03-14_l2_semantics_v2/
 fmf_gam_results/
 li_ginoux_figure2_replication/
+MOD08_D3_2024-09_LiGinoux/
+MOD08_D3_2024-09_XGBoost/
+MOD08_D3_2024-09_monthly_mean/
+MODIS_DB_L3_DustAOD_XGBoost_testcase/
+MODIS_DB_L3_DustAOD_XGBoost_testcase_semantics/
 modis_db_dust_aod550_xgb/
 
 # Trained model artifacts and derived tables/plots
 dust_aod_xgb*.json
 dust_aod_xgb*.csv
 dust_fraction_training_data.csv
+MOD08_D3_DustAOD_*_global*.png
+Github_auth_log.png
+github_auth.png
+Token_permission*.png
 
 # Standalone test outputs created during development
 *_test/
