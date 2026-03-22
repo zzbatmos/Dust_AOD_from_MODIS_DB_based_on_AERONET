@@ -1,0 +1,30 @@
+# Python cache / build artifacts
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Local environment / editor state
+.DS_Store
+
+# Temporary downloads and scratch outputs
+temp_downloads/
+
+# Large generated analysis outputs
+aeronet_dust_aod_allsites/
+aeronet_modis_db_comparisons/
+dust_model_application_2025-03-14/
+fmf_gam_results/
+li_ginoux_figure2_replication/
+modis_db_dust_aod550_xgb/
+
+# Trained model artifacts and derived tables/plots
+dust_aod_xgb*.json
+dust_aod_xgb*.csv
+dust_fraction_training_data.csv
+
+# Standalone test outputs created during development
+*_test/
