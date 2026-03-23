@@ -296,6 +296,99 @@ Current case summary:
 - direct `dust_aod550_log1p` model gives dust AOD at 550 nm
 - Li-Ginoux gives a same-wavelength coarse-mode dust proxy for direct comparison
 
+## Extended MODIS Application Work
+
+### 9. L2 and L3 production scripts
+
+The project now includes production-style daily application scripts for both
+Li-Ginoux and XGBoost.
+
+Scripts:
+
+- [DAOD_from_DB_L2-v4.py](/home/ec2-user/Research/DAOD_from_DB_L2-v4.py)
+- [DAOD_from_DB_L3-v4.py](/home/ec2-user/Research/DAOD_from_DB_L3-v4.py)
+- [DAOD_from_DB_L2_XGBoost.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L2_XGBoost.py)
+- [DAOD_from_DB_L3_LiGinoux.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_LiGinoux.py)
+- [DAOD_from_DB_L3_XGBoost.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_XGBoost.py)
+
+Important operational convention:
+
+- if DB total AOD is missing, dust AOD is `NaN`
+- if DB total AOD exists but the method does not produce dust AOD, set dust AOD to `0`
+- if DB total AOD exists and the method produces dust AOD, keep the positive value
+
+This convention is now used consistently in the L2 and L3 workflows so that
+Li-Ginoux and XGBoost products are directly comparable.
+
+### 10. September 2024 monthly L3 comparison
+
+The L3 workflows were applied to Terra daily `MOD08_D3` for September 2024 and
+then averaged to a monthly mean using `NaN`-ignoring averaging.
+
+Scripts:
+
+- [DAOD_from_DB_L3_LiGinoux.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_LiGinoux.py)
+- [DAOD_from_DB_L3_XGBoost.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_XGBoost.py)
+- [monthly_mean_l3_daod_compare.py](/home/ec2-user/Research/Codex/monthly_mean_l3_daod_compare.py)
+
+Output directories:
+
+- [/home/ec2-user/Research/Codex/MOD08_D3_2024-09_LiGinoux](/home/ec2-user/Research/Codex/MOD08_D3_2024-09_LiGinoux)
+- [/home/ec2-user/Research/Codex/MOD08_D3_2024-09_XGBoost](/home/ec2-user/Research/Codex/MOD08_D3_2024-09_XGBoost)
+- [/home/ec2-user/Research/Codex/MOD08_D3_2024-09_monthly_mean](/home/ec2-user/Research/Codex/MOD08_D3_2024-09_monthly_mean)
+
+The plotting routine was tuned for presentation:
+
+- Robinson projection
+- side colorbar instead of overlaid colorbar
+- yellow-brown dust colormap
+
+This case is useful because September 2024 includes major Amazon fire/smoke
+activity, making it a good stress test for dust-versus-smoke separation.
+
+### 11. September 22, 2024 Terra Amazon granule
+
+The Terra granule `MOD04_L2.A2024266.1345.061.2024268021127.hdf` was used as a
+local L2 case study over the Amazon basin.
+
+Output directory:
+
+- [/home/ec2-user/Research/Codex/dust_model_application_2024-09-22_amazon](/home/ec2-user/Research/Codex/dust_model_application_2024-09-22_amazon)
+
+This case was used to improve the L2 visualization workflow. The plotting
+routine in [apply_dust_model_to_modis_db.py](/home/ec2-user/Research/Codex/apply_dust_model_to_modis_db.py)
+was updated from scatter plotting to swath-style `pcolormesh` so the granule
+edges and pixel continuity are rendered more clearly.
+
+Additional publication-style outputs were created:
+
+- shared-scale two-panel Li-Ginoux vs XGBoost dust-AOD comparison
+- `ML - Li-Ginoux` difference map with a diverging colormap
+- full MODIS DB reference maps for spectral AOD, AE, and SSA
+
+### 12. Long-run L3 backfill status
+
+A resumable monthly backfill driver and supervisor were added for long L3 runs:
+
+- [run_modis_l3_daod_backfill.py](/home/ec2-user/Research/Codex/run_modis_l3_daod_backfill.py)
+- [supervise_modis_l3_daod_jobs.py](/home/ec2-user/Research/Codex/supervise_modis_l3_daod_jobs.py)
+
+Primary output directory:
+
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill](/home/ec2-user/Research/Codex/modis_l3_daod_backfill)
+
+Important state at the latest check:
+
+- Aqua (`MYD08_D3`) backfills are complete from `2002-07-04` through `2024-12-31`
+- Terra (`MOD08_D3`) backfills are substantial but still incomplete
+- within each platform, the Li-Ginoux and XGBoost date sets match exactly
+- some expected Terra and Aqua dates remain missing, so future sessions should
+  validate date coverage rather than assuming the run fully finished
+
+Because Earthdata sessions can expire and tmux supervision proved unreliable,
+future long runs should treat missing-month retries and explicit coverage
+checks as part of the normal workflow.
+
 ## Main Script Map
 
 ### Core AERONET processing
@@ -315,6 +408,12 @@ Current case summary:
 - [train_modis_db_dust_aod550_xgb.py](/home/ec2-user/Research/Codex/train_modis_db_dust_aod550_xgb.py)
 - [compare_collocated_aeronet_modis_db.py](/home/ec2-user/Research/Codex/compare_collocated_aeronet_modis_db.py)
 - [apply_dust_model_to_modis_db.py](/home/ec2-user/Research/Codex/apply_dust_model_to_modis_db.py)
+- [DAOD_from_DB_L2_XGBoost.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L2_XGBoost.py)
+- [DAOD_from_DB_L3_LiGinoux.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_LiGinoux.py)
+- [DAOD_from_DB_L3_XGBoost.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_XGBoost.py)
+- [monthly_mean_l3_daod_compare.py](/home/ec2-user/Research/Codex/monthly_mean_l3_daod_compare.py)
+- [run_modis_l3_daod_backfill.py](/home/ec2-user/Research/Codex/run_modis_l3_daod_backfill.py)
+- [supervise_modis_l3_daod_jobs.py](/home/ec2-user/Research/Codex/supervise_modis_l3_daod_jobs.py)
 
 ### Li and Ginoux / FMF branch
 
@@ -330,6 +429,7 @@ For future work, the main recommended path is:
 3. Use [derive_aeronet_dust_aod.py](/home/ec2-user/Research/Codex/derive_aeronet_dust_aod.py) to regenerate dust-AOD validation against AERONET coarse-mode AOD.
 4. Use [train_modis_db_dust_aod550_xgb.py](/home/ec2-user/Research/Codex/train_modis_db_dust_aod550_xgb.py) as the main MODIS DB training script, because the target is now aligned at 550 nm.
 5. Use [apply_dust_model_to_modis_db.py](/home/ec2-user/Research/Codex/apply_dust_model_to_modis_db.py) for case studies and direct Li-Ginoux comparison.
+6. Use the `DAOD_from_DB_L3_*` scripts for long daily production runs, but verify date coverage after completion because Earthdata/network interruptions can silently leave gaps.
 
 ## Known Scientific / Technical Caveats
 
@@ -338,6 +438,7 @@ For future work, the main recommended path is:
 3. The MODIS DB ML model coverage is limited by the need for all required input features, especially SSA channels.
 4. Dust spectral interpolation from 440/675/1020 to 500 or 550 nm is currently handled through log-log scaling; future sessions may want to test more constrained spectral assumptions.
 5. The Li and Ginoux comparisons are useful references, but they represent a coarse-mode proxy rather than the same physical retrieval chain as the DPR/LR method.
+6. Long L3 Earthdata runs can stall due to authentication expiry, missing-month responses, or detached-session failures. Coverage validation is therefore part of the workflow, not an optional afterthought.
 
 ## Suggested Next Extensions
 
@@ -347,7 +448,8 @@ Likely next steps for future sessions:
 2. Add more rigorous train/test split strategies for MODIS training, such as leave-site-out or leave-region-out validation.
 3. Build fallback MODIS models that do not require SSA inputs, to improve spatial coverage.
 4. Improve the comparison plotting and panel generation for publication-style figures.
-5. Add README-level documentation for external users of the GitHub repository.
+5. Harden the long L3 backfill system so it can re-authenticate and resume more reliably without relying on tmux session state.
+6. Add README-level documentation for external users of the GitHub repository.
 
 ## Related Project Notes
 

@@ -393,6 +393,74 @@ def save_scatter_map(
     return {"N": int(lat_f.size), "vmin": vvmin, "vmax": vvmax}
 
 
+def save_swath_map(
+    lat2d: np.ndarray,
+    lon2d: np.ndarray,
+    z2d: np.ndarray,
+    output_path: Path,
+    title: str,
+    cbar_label: str,
+    is_fraction: bool = False,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    extent_pad_deg: float = 0.8,
+    cmap: str | None = None,
+) -> dict[str, float]:
+    lat = np.asarray(lat2d, dtype=float)
+    lon = np.asarray(lon2d, dtype=float)
+    z = np.asarray(z2d, dtype=float)
+    lon = ((lon + 180.0) % 360.0) - 180.0
+
+    mask = np.isfinite(lat) & np.isfinite(lon) & np.isfinite(z)
+    if not np.any(mask):
+        raise ValueError(f"No finite samples found for plot {output_path.name}.")
+
+    z_valid = z[mask]
+    if is_fraction:
+        vvmin, vvmax = 0.0, 1.0
+        plot_cmap = cmap or "inferno"
+    else:
+        vvmin = float(np.nanpercentile(z_valid, 2)) if vmin is None else vmin
+        vvmax = float(np.nanpercentile(z_valid, 98)) if vmax is None else vmax
+        if not np.isfinite(vvmin) or not np.isfinite(vvmax) or vvmin == vvmax:
+            vvmin = float(np.nanmin(z_valid))
+            vvmax = float(np.nanmax(z_valid))
+        plot_cmap = cmap or "plasma"
+
+    plot_field = np.ma.masked_invalid(z)
+    proj_data = ccrs.PlateCarree()
+    fig = plt.figure(figsize=(11, 6))
+    ax = plt.axes(projection=proj_data)
+    ax.coastlines(linewidth=0.8)
+    ax.gridlines(draw_labels=False, linewidth=0.3, alpha=0.5, linestyle=":")
+    ax.set_extent(
+        [
+            float(np.nanmin(lon[mask])) - extent_pad_deg,
+            float(np.nanmax(lon[mask])) + extent_pad_deg,
+            float(np.nanmin(lat[mask])) - extent_pad_deg,
+            float(np.nanmax(lat[mask])) + extent_pad_deg,
+        ],
+        crs=proj_data,
+    )
+    mesh = ax.pcolormesh(
+        lon,
+        lat,
+        plot_field,
+        transform=proj_data,
+        shading="nearest",
+        cmap=plot_cmap,
+        vmin=vvmin,
+        vmax=vvmax,
+        rasterized=True,
+    )
+    cb = plt.colorbar(mesh, ax=ax, pad=0.03, shrink=0.82)
+    cb.set_label(cbar_label)
+    ax.set_title(title)
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return {"N": int(z_valid.size), "vmin": vvmin, "vmax": vvmax}
+
+
 def save_comparison_panel(
     lat2d: np.ndarray,
     lon2d: np.ndarray,
@@ -414,21 +482,19 @@ def save_comparison_panel(
         2,
         figsize=(14, 10),
         subplot_kw={"projection": ccrs.PlateCarree()},
+        constrained_layout=True,
     )
     axes = axes.ravel()
 
     for ax, panel in zip(axes, panels):
         z = np.asarray(panel["data"], dtype=float)
-        z_f = z.ravel()
-        mask = finite_geo.ravel() & np.isfinite(z_f)
+        mask = finite_geo & np.isfinite(z)
         if not np.any(mask):
             ax.set_title(f"{panel['title']} (no valid data)")
             ax.coastlines(linewidth=0.8)
             continue
 
-        lon_plot = lon.ravel()[mask]
-        lat_plot = lat.ravel()[mask]
-        z_plot = z_f[mask]
+        z_plot = z[mask]
         is_fraction = bool(panel.get("is_fraction", False))
         if is_fraction:
             vmin, vmax = 0.0, 1.0
@@ -443,17 +509,16 @@ def save_comparison_panel(
                 vmin = float(np.nanmin(z_plot))
                 vmax = float(np.nanmax(z_plot))
 
-        sc = ax.scatter(
-            lon_plot,
-            lat_plot,
-            c=z_plot,
-            s=5,
-            alpha=0.85,
+        mesh = ax.pcolormesh(
+            lon,
+            lat,
+            np.ma.masked_invalid(z),
             transform=ccrs.PlateCarree(),
+            shading="nearest",
             cmap=panel.get("cmap", "plasma"),
             vmin=vmin,
             vmax=vmax,
-            linewidths=0,
+            rasterized=True,
         )
         ax.coastlines(linewidth=0.8)
         ax.gridlines(draw_labels=False, linewidth=0.3, alpha=0.5, linestyle=":")
@@ -467,11 +532,10 @@ def save_comparison_panel(
             crs=ccrs.PlateCarree(),
         )
         ax.set_title(str(panel["title"]))
-        cb = plt.colorbar(sc, ax=ax, pad=0.02, shrink=0.82)
+        cb = fig.colorbar(mesh, ax=ax, pad=0.02, shrink=0.82, location="right")
         cb.set_label(str(panel["label"]))
 
     fig.suptitle(figure_title, y=0.98)
-    fig.tight_layout()
     fig.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
 
@@ -571,7 +635,7 @@ def save_reference_feature_maps(
     rows = []
     for feature_name, title, is_fraction in reference_specs:
         output_path = output_dir / f"{granule_path.stem}_{feature_name}.png"
-        plot_stats = save_scatter_map(
+        plot_stats = save_swath_map(
             lat2d,
             lon2d,
             features_2d[feature_name],
@@ -620,7 +684,7 @@ def main() -> None:
     lg_dust_aod_png = (
         args.output_dir / f"{granule_path.stem}_li_ginoux_dust_aod_ssa_constraint.png"
     )
-    lg_fmf_stats = save_scatter_map(
+    lg_fmf_stats = save_swath_map(
         lat2d,
         lon2d,
         lg_fmf,
@@ -629,7 +693,7 @@ def main() -> None:
         cbar_label="Li-Ginoux FMF",
         is_fraction=True,
     )
-    lg_dust_aod_stats = save_scatter_map(
+    lg_dust_aod_stats = save_swath_map(
         lat2d,
         lon2d,
         lg_dust_aod,
@@ -652,7 +716,7 @@ def main() -> None:
                 features_2d[f"MODIS_DB_AOD{args.daod_source_band}"],
             )
             frac_png = args.output_dir / f"{granule_path.stem}_{spec.name}_dust_fraction.png"
-            frac_stats = save_scatter_map(
+            frac_stats = save_swath_map(
                 lat2d,
                 lon2d,
                 dust_fraction,
@@ -679,7 +743,7 @@ def main() -> None:
             raise ValueError(f"Unsupported model output kind: {spec.output_kind}")
 
         daod_png = args.output_dir / f"{granule_path.stem}_{spec.name}_dust_aod_{daod_suffix}.png"
-        daod_stats = save_scatter_map(
+        daod_stats = save_swath_map(
             lat2d,
             lon2d,
             dust_aod,
