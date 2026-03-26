@@ -14,6 +14,8 @@ The major additions were:
 - long backfill jobs for Terra and Aqua daily L3 products
 - improved L2 swath plotting for local case studies
 - Song2021-style monthly Aqua aggregation and comparison
+- experimental two-stage MODIS DB dust workflow on branch `two-stage-dust-model`
+- Terra 2024 L3 two-stage QA-tier annual products and comparison figures
 
 ## Main Code Added or Updated
 
@@ -40,6 +42,9 @@ Dust-AOD semantics were unified across methods:
 - [supervise_modis_l3_daod_jobs.py](/home/ec2-user/Research/Codex/supervise_modis_l3_daod_jobs.py)
 - [build_song_style_monthly_daod.py](/home/ec2-user/Research/Codex/build_song_style_monthly_daod.py)
 - [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py)
+- [DAOD_from_DB_L3_TwoStage.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_TwoStage.py)
+- [compare_l3_daod_methods_year.py](/home/ec2-user/Research/Codex/compare_l3_daod_methods_year.py)
+- [compare_l3_two_stage_qa_year.py](/home/ec2-user/Research/Codex/compare_l3_two_stage_qa_year.py)
 
 These were used for:
 
@@ -191,6 +196,66 @@ Averaging rule used in the monthly builder:
 Comparison script:
 
 - [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py)
+- [DAOD_from_DB_L3_TwoStage.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_TwoStage.py)
+- [compare_l3_two_stage_qa_year.py](/home/ec2-user/Research/Codex/compare_l3_two_stage_qa_year.py)
+
+## Two-Stage Branch and QA Workflow
+
+Experimental branch:
+
+- `two-stage-dust-model`
+
+Main branch-specific documents and scripts:
+
+- [TWO_STAGE_METHOD.md](/home/ec2-user/Research/Codex/TWO_STAGE_METHOD.md)
+- [train_modis_db_two_stage_xgb.py](/home/ec2-user/Research/Codex/train_modis_db_two_stage_xgb.py)
+- [apply_two_stage_dust_model_to_modis_db.py](/home/ec2-user/Research/Codex/apply_two_stage_dust_model_to_modis_db.py)
+- [tune_two_stage_dust_model.py](/home/ec2-user/Research/Codex/tune_two_stage_dust_model.py)
+- [DAOD_from_DB_L3_TwoStage.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_TwoStage.py)
+- [compare_l3_two_stage_qa_year.py](/home/ec2-user/Research/Codex/compare_l3_two_stage_qa_year.py)
+
+Current Terra 2024 two-stage daily archive:
+
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStage_2024](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStage_2024)
+
+Coverage:
+
+- `366` daily files for `2024`
+
+Current QA interpretation:
+
+- `QA>=1`
+  - broad product
+  - intentionally reduced to the direct XGBoost result
+- `QA>=2`
+  - moderate-confidence two-stage dust
+- `QA>=3`
+  - strict/high-confidence two-stage dust
+
+Important 2024 QA outputs:
+
+- [/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024](/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024)
+- [QA climatology maps](/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024/MOD08_D3_TwoStage_QA_climatology_maps_2024.png)
+- [QA difference maps](/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024/MOD08_D3_TwoStage_QA_difference_maps_2024.png)
+- [QA detection frequency](/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024/MOD08_D3_TwoStage_QA_detection_frequency_2024.png)
+
+Tracked branch figure directory:
+
+- [comparison_to_two_stage_QA_2024](/home/ec2-user/Research/Codex/comparison_to_two_stage_QA_2024)
+
+Annual global means:
+
+- Li-Ginoux: `0.0602`
+- direct XGBoost: `0.0670`
+- `QA>=1`: `0.0670`
+- `QA>=2`: `0.0491`
+- `QA>=3`: `0.0420`
+
+Key interpretation:
+
+- `QA>=1` preserves weak dust regions by design
+- `QA>=2` and `QA>=3` are better for smoke-sensitive applications
+- this branch should stay experimental until tested over multiple years
 
 Comparison output directory:
 

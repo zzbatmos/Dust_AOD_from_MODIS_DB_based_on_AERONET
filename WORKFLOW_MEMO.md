@@ -10,6 +10,7 @@ The core idea is:
 2. Use those AERONET-derived dust quantities as training targets.
 3. Train XGBoost models so dust AOD can be estimated from MODIS DB aerosol products.
 4. Apply the trained model to real MODIS granules and compare against simpler reference methods such as Li and Ginoux.
+5. Extend the ML workflow to a two-stage dust-detection plus dust-amount framework with QA tiers.
 
 This memo is intended to let future sessions pick up the work quickly and extend it without re-deriving the current structure.
 
@@ -23,6 +24,7 @@ The workflow focuses on the following scientific tasks:
 4. Use AERONET-to-AERONET XGBoost training as a sanity check.
 5. Train XGBoost models against collocated MODIS DB products.
 6. Apply the trained MODIS model to a real Terra MODIS case on March 14, 2025.
+7. Build QA-tiered yearly L3 products so users can choose broad or conservative dust screening.
 
 ## Data Foundations
 
@@ -262,6 +264,64 @@ Purpose:
 - compare against GAM alternatives
 
 This branch is useful for comparison and interpretation, but it is separate from the main DPR/LR-based dust-AOD target workflow.
+
+### 9. Two-stage branch and QA extension
+
+There is now an experimental branch that extends the single-stage MODIS ML
+workflow to a two-stage design:
+
+1. stage 1: dust detection
+2. stage 2: dust-fraction estimation
+3. final derivation: `dust_AOD_550 = dust_fraction * MODIS_DB_AOD550`
+
+Core scripts:
+
+- [train_modis_db_two_stage_xgb.py](/home/ec2-user/Research/Codex/train_modis_db_two_stage_xgb.py)
+- [apply_two_stage_dust_model_to_modis_db.py](/home/ec2-user/Research/Codex/apply_two_stage_dust_model_to_modis_db.py)
+- [tune_two_stage_dust_model.py](/home/ec2-user/Research/Codex/tune_two_stage_dust_model.py)
+- [TWO_STAGE_METHOD.md](/home/ec2-user/Research/Codex/TWO_STAGE_METHOD.md)
+
+Branch:
+
+- `two-stage-dust-model`
+
+This branch should remain separate from `main` until the two-stage method is
+tested over longer periods and more regions.
+
+### 10. Terra 2024 L3 two-stage QA products
+
+The two-stage workflow now has L3 yearly support.
+
+Scripts:
+
+- [DAOD_from_DB_L3_TwoStage.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_TwoStage.py)
+- [compare_l3_daod_methods_year.py](/home/ec2-user/Research/Codex/compare_l3_daod_methods_year.py)
+- [compare_l3_two_stage_qa_year.py](/home/ec2-user/Research/Codex/compare_l3_two_stage_qa_year.py)
+
+Current 2024 Terra QA interpretation:
+
+- `QA>=1`: broad product, intentionally reduced to direct XGBoost
+- `QA>=2`: moderate-confidence two-stage dust
+- `QA>=3`: strict/high-confidence two-stage dust
+
+2024 Terra annual means:
+
+- Li-Ginoux: `0.0602`
+- direct XGBoost: `0.0670`
+- `QA>=1`: `0.0670`
+- `QA>=2`: `0.0491`
+- `QA>=3`: `0.0420`
+
+Current output/figure locations:
+
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStage_2024](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStage_2024)
+- [/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024](/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024)
+- [tracked QA climatology figures](/home/ec2-user/Research/Codex/comparison_to_two_stage_QA_2024)
+
+Operational interpretation:
+
+- `QA>=1` is the broad weak-dust product
+- `QA>=2` and `QA>=3` provide progressively stricter smoke-resistant products
 
 ## March 14, 2025 Terra MODIS Case
 
