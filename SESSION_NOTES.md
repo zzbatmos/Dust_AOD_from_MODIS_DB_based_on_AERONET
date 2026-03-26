@@ -13,6 +13,7 @@ The major additions were:
 - September 2024 monthly L3 Terra comparison
 - long backfill jobs for Terra and Aqua daily L3 products
 - improved L2 swath plotting for local case studies
+- Song2021-style monthly Aqua aggregation and comparison
 
 ## Main Code Added or Updated
 
@@ -37,12 +38,16 @@ Dust-AOD semantics were unified across methods:
 - [plot_l3_daod_global_map.py](/home/ec2-user/Research/Codex/plot_l3_daod_global_map.py)
 - [run_modis_l3_daod_backfill.py](/home/ec2-user/Research/Codex/run_modis_l3_daod_backfill.py)
 - [supervise_modis_l3_daod_jobs.py](/home/ec2-user/Research/Codex/supervise_modis_l3_daod_jobs.py)
+- [build_song_style_monthly_daod.py](/home/ec2-user/Research/Codex/build_song_style_monthly_daod.py)
+- [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py)
 
 These were used for:
 
 - daily L3 application over long time ranges
 - monthly averaging with `NaN`-ignoring means
 - large-scale monitoring and resumable reruns
+- Song-style `(year, month, lat, lon)` monthly aggregation for Aqua 2003-2019
+- land-masked comparison against the Song et al. 2021 monthly product
 
 ### L2 local-application plotting improvements
 
@@ -163,6 +168,64 @@ Current state:
 - the later movie run failed on a truncated image frame
 - movie production was then postponed until the data-generation jobs finish
 
+## Song2021 Monthly Comparison
+
+Reference product copied locally:
+
+- [/home/ec2-user/Research/Codex/Song2021_data/AquaModis_Ocean_ncountGE10_Land_AOD_20032019_Monthly_1degX1deg.nc](/home/ec2-user/Research/Codex/Song2021_data/AquaModis_Ocean_ncountGE10_Land_AOD_20032019_Monthly_1degX1deg.nc)
+
+New monthly products built from our Aqua daily L3 files:
+
+- [build_song_style_monthly_daod.py](/home/ec2-user/Research/Codex/build_song_style_monthly_daod.py)
+
+Generated files:
+
+- [/home/ec2-user/Research/Codex/Song2021_data/MYD08_D3_DustAOD_XGB_2003_2019_Monthly_1degX1deg.nc](/home/ec2-user/Research/Codex/Song2021_data/MYD08_D3_DustAOD_XGB_2003_2019_Monthly_1degX1deg.nc)
+- [/home/ec2-user/Research/Codex/Song2021_data/MYD08_D3_DustAOD_LiGinoux_2003_2019_Monthly_1degX1deg.nc](/home/ec2-user/Research/Codex/Song2021_data/MYD08_D3_DustAOD_LiGinoux_2003_2019_Monthly_1degX1deg.nc)
+
+Averaging rule used in the monthly builder:
+
+- if daily total AOD is missing, ignore that day
+- if total AOD exists but daily dust AOD is missing, count the day and set dust AOD to `0`
+
+Comparison script:
+
+- [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py)
+
+Comparison output directory:
+
+- [/home/ec2-user/Research/Codex/song2021_comparison](/home/ec2-user/Research/Codex/song2021_comparison)
+
+Important output figures:
+
+- [global monthly mean DAOD time series](/home/ec2-user/Research/Codex/song2021_comparison/aqua_2003_2019_global_land_monthly_mean_daod_timeseries.png)
+- [global monthly-cycle figure](/home/ec2-user/Research/Codex/song2021_comparison/aqua_2003_2019_global_land_monthly_cycle_daod.png)
+- [DAOD climatology maps](/home/ec2-user/Research/Codex/song2021_comparison/aqua_2003_2019_daod_climatology_maps.png)
+- [DAOD difference maps](/home/ec2-user/Research/Codex/song2021_comparison/aqua_2003_2019_daod_difference_maps.png)
+
+Important plotting fixes:
+
+- Song stores latitude ascending from `-89.5` to `89.5`
+- our monthly files were descending from `89.5` to `-89.5`
+- the comparison script now reorders our fields to Song orientation before masking and plotting
+- climatology and difference maps now use Robinson projection with coastlines, borders, and labeled lat-lon grids
+
+Published-value comparison:
+
+- the relevant published benchmark is Song et al. 2021 Table 4, not Table 2
+- Song et al. report MODIS land DAOD over `60S-60N` for `2007-2019` as about `0.103`
+
+Our area-weighted land means over `60S-60N` for `2007-2019`:
+
+- Song2021 monthly product: `0.1021`
+- XGBoost: `0.0694`
+- Li-Ginoux: `0.0708`
+
+Interpretation:
+
+- the copied Song monthly product reproduces the published value closely
+- both our current Aqua products are about `31-33 %` lower than the Song reference on that metric
+
 ## Key Operational Caveats
 
 1. Earthdata authentication appears to expire during long runs, so month-level
@@ -181,4 +244,5 @@ Use these scripts for future work:
 - [DAOD_from_DB_L3_XGBoost.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_XGBoost.py)
 - [monthly_mean_l3_daod_compare.py](/home/ec2-user/Research/Codex/monthly_mean_l3_daod_compare.py)
 - [run_modis_l3_daod_backfill.py](/home/ec2-user/Research/Codex/run_modis_l3_daod_backfill.py)
-
+- [build_song_style_monthly_daod.py](/home/ec2-user/Research/Codex/build_song_style_monthly_daod.py)
+- [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py)

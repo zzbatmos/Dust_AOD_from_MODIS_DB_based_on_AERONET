@@ -30,6 +30,7 @@ MODIS_DB_L3_DustAOD_XGBoost_testcase_semantics/
 modis_db_dust_aod550_xgb/
 modis_l3_daod_backfill/
 aqua_l3_daod_movies/
+song2021_comparison/
 
 # Trained model artifacts and derived tables/plots
 dust_aod_xgb*.json
@@ -42,6 +43,8 @@ modis_l3_daod_supervisor.log
 Github_auth_log.png
 github_auth.png
 Token_permission*.png
+Song2021_data/*.nc
+codex_resume
 
 # Standalone test outputs created during development
 *_test/

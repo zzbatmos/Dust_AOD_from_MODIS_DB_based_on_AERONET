@@ -389,6 +389,59 @@ Because Earthdata sessions can expire and tmux supervision proved unreliable,
 future long runs should treat missing-month retries and explicit coverage
 checks as part of the normal workflow.
 
+### 13. Song2021-style monthly Aqua comparison
+
+The workflow now includes a direct comparison against the Song et al. (2021)
+monthly Aqua MODIS land dust-AOD product.
+
+Reference file:
+
+- [/home/ec2-user/Research/Codex/Song2021_data/AquaModis_Ocean_ncountGE10_Land_AOD_20032019_Monthly_1degX1deg.nc](/home/ec2-user/Research/Codex/Song2021_data/AquaModis_Ocean_ncountGE10_Land_AOD_20032019_Monthly_1degX1deg.nc)
+
+New scripts:
+
+- [build_song_style_monthly_daod.py](/home/ec2-user/Research/Codex/build_song_style_monthly_daod.py)
+- [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py)
+
+Purpose:
+
+- aggregate our Aqua daily L3 DAOD outputs into a Song-style monthly NetCDF
+  with dimensions `(year, month, lat, lon)`
+- compare our monthly DAOD and TAOD fields against the Song reference product
+  on the same grid
+
+Important averaging rule:
+
+- if daily total AOD is missing, that day is ignored
+- if daily total AOD exists but daily dust AOD is missing, that day is counted
+  and dust AOD is set to zero for the monthly mean
+
+Generated monthly files:
+
+- [/home/ec2-user/Research/Codex/Song2021_data/MYD08_D3_DustAOD_XGB_2003_2019_Monthly_1degX1deg.nc](/home/ec2-user/Research/Codex/Song2021_data/MYD08_D3_DustAOD_XGB_2003_2019_Monthly_1degX1deg.nc)
+- [/home/ec2-user/Research/Codex/Song2021_data/MYD08_D3_DustAOD_LiGinoux_2003_2019_Monthly_1degX1deg.nc](/home/ec2-user/Research/Codex/Song2021_data/MYD08_D3_DustAOD_LiGinoux_2003_2019_Monthly_1degX1deg.nc)
+
+Comparison outputs:
+
+- [/home/ec2-user/Research/Codex/song2021_comparison](/home/ec2-user/Research/Codex/song2021_comparison)
+
+Important implementation detail:
+
+- Song stores latitude ascending from `-89.5` to `89.5`
+- our monthly files were written with descending latitude
+- the comparison script now reorders our fields to the Song latitude
+  convention before masking and plotting
+
+Current comparison benchmark:
+
+- the relevant published paper benchmark is Song et al. 2021 Table 4
+- for MODIS land DAOD over `60S-60N` during `2007-2019`, the paper reports
+  about `0.103`
+- the copied Song monthly product reproduces this closely at `0.1021`
+- our current Aqua means on the same weighted land domain are:
+  - XGBoost `0.0694`
+  - Li-Ginoux `0.0708`
+
 ## Main Script Map
 
 ### Core AERONET processing
@@ -414,6 +467,8 @@ checks as part of the normal workflow.
 - [monthly_mean_l3_daod_compare.py](/home/ec2-user/Research/Codex/monthly_mean_l3_daod_compare.py)
 - [run_modis_l3_daod_backfill.py](/home/ec2-user/Research/Codex/run_modis_l3_daod_backfill.py)
 - [supervise_modis_l3_daod_jobs.py](/home/ec2-user/Research/Codex/supervise_modis_l3_daod_jobs.py)
+- [build_song_style_monthly_daod.py](/home/ec2-user/Research/Codex/build_song_style_monthly_daod.py)
+- [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py)
 
 ### Li and Ginoux / FMF branch
 
@@ -430,6 +485,7 @@ For future work, the main recommended path is:
 4. Use [train_modis_db_dust_aod550_xgb.py](/home/ec2-user/Research/Codex/train_modis_db_dust_aod550_xgb.py) as the main MODIS DB training script, because the target is now aligned at 550 nm.
 5. Use [apply_dust_model_to_modis_db.py](/home/ec2-user/Research/Codex/apply_dust_model_to_modis_db.py) for case studies and direct Li-Ginoux comparison.
 6. Use the `DAOD_from_DB_L3_*` scripts for long daily production runs, but verify date coverage after completion because Earthdata/network interruptions can silently leave gaps.
+7. Use [build_song_style_monthly_daod.py](/home/ec2-user/Research/Codex/build_song_style_monthly_daod.py) and [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py) when comparing our Aqua climatology against Song et al. monthly products.
 
 ## Known Scientific / Technical Caveats
 
@@ -439,6 +495,7 @@ For future work, the main recommended path is:
 4. Dust spectral interpolation from 440/675/1020 to 500 or 550 nm is currently handled through log-log scaling; future sessions may want to test more constrained spectral assumptions.
 5. The Li and Ginoux comparisons are useful references, but they represent a coarse-mode proxy rather than the same physical retrieval chain as the DPR/LR method.
 6. Long L3 Earthdata runs can stall due to authentication expiry, missing-month responses, or detached-session failures. Coverage validation is therefore part of the workflow, not an optional afterthought.
+7. Comparison against Song et al. requires attention to grid conventions: Song stores latitude ascending, whereas our monthly builder initially preserved descending latitude from the daily MODIS files.
 
 ## Suggested Next Extensions
 
@@ -449,7 +506,8 @@ Likely next steps for future sessions:
 3. Build fallback MODIS models that do not require SSA inputs, to improve spatial coverage.
 4. Improve the comparison plotting and panel generation for publication-style figures.
 5. Harden the long L3 backfill system so it can re-authenticate and resume more reliably without relying on tmux session state.
-6. Add README-level documentation for external users of the GitHub repository.
+6. Diagnose why our current Aqua land-mean DAOD is about 31-33 % lower than the Song monthly reference over `60S-60N` for `2007-2019`.
+7. Add README-level documentation for external users of the GitHub repository.
 
 ## Related Project Notes
 
