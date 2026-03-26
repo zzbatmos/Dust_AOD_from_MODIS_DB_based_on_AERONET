@@ -213,6 +213,69 @@ This guarantees:
 - dusty scenes get a quantitative estimate
 - dust AOD remains physically bounded by total AOD
 
+## QA Extension
+
+After the initial two-stage implementation, the method was extended with a
+user-facing QA concept so the product can support both:
+
+- conservative smoke-resistant dust applications
+- broader weak-dust applications
+
+This is important because the strict tuned two-stage mask worked well over
+Amazon smoke and India, but it also screened out weaker dust regions such as:
+
+- the southeastern United States
+- Australia
+- South Africa
+
+### Current QA interpretation
+
+For the 2024 Terra L3 experiments, the QA tiers were defined operationally as:
+
+- `QA>=1`
+  - broad dust product
+  - intentionally reduced to the direct single-stage XGBoost product
+- `QA>=2`
+  - moderate-confidence two-stage dust
+  - requires stronger dust probability and AOD support
+- `QA>=3`
+  - strict/high-confidence two-stage dust
+  - most conservative option for smoke-sensitive applications
+
+This design was chosen because it keeps the useful broad-coverage behavior of
+the direct XGBoost model in weak dust regions, while preserving the smoke
+rejection advantage of the two-stage method at higher QA.
+
+### Why `QA>=1` was mapped to direct XGBoost
+
+The first attempt at a low-confidence tier still used only the two-stage
+framework with looser probability thresholds. That recovered some dust, but it
+did not fully restore weak dust regions. The updated QA design therefore uses:
+
+- `QA>=1`: direct XGBoost behavior
+- `QA>=2` and `QA>=3`: two-stage filtered behavior
+
+This gives users a clearer progression:
+
+- if broad spatial coverage is more important, use `QA>=1`
+- if dust type purity is more important, use `QA>=2` or `QA>=3`
+
+### 2024 Terra L3 QA processing
+
+The yearly L3 processing and plotting code for this QA workflow is:
+
+- [DAOD_from_DB_L3_TwoStage.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_TwoStage.py)
+- [compare_l3_two_stage_qa_year.py](/home/ec2-user/Research/Codex/compare_l3_two_stage_qa_year.py)
+
+The 2024 Terra annual tests showed:
+
+- `QA>=1` reproduces the direct XGBoost annual mean
+- `QA>=2` provides an intermediate product
+- `QA>=3` remains the strict smoke-resistant product
+
+This QA structure is therefore the current recommended way to expose the
+two-stage method to users.
+
 ## Code Structure
 
 ### Training

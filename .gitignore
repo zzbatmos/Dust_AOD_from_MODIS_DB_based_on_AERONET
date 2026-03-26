@@ -34,6 +34,8 @@ MODIS_DB_L3_DustAOD_XGBoost_testcase_semantics/
 modis_db_dust_aod550_xgb/
 modis_db_two_stage_xgb/
 modis_l3_daod_backfill/
+modis_l3_daod_comparison_2024/
+modis_l3_two_stage_qa_2024/
 aqua_l3_daod_movies/
 song2021_comparison/
 two_stage_tuning/
