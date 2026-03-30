@@ -20,6 +20,10 @@ dust_model_application_2025-03-14/
 dust_model_application_2025-03-14_l2_semantics/
 dust_model_application_2025-03-14_l2_semantics_v2/
 dust_model_application_2024-09-22_amazon/
+dust_model_application_2025-03-14_two_stage/
+dust_model_application_2025-03-14_two_stage_tuned/
+dust_model_application_2024-09-22_amazon_two_stage/
+dust_model_application_2024-09-22_amazon_two_stage_tuned/
 fmf_gam_results/
 li_ginoux_figure2_replication/
 MOD08_D3_2024-09_LiGinoux/
@@ -28,9 +32,13 @@ MOD08_D3_2024-09_monthly_mean/
 MODIS_DB_L3_DustAOD_XGBoost_testcase/
 MODIS_DB_L3_DustAOD_XGBoost_testcase_semantics/
 modis_db_dust_aod550_xgb/
+modis_db_two_stage_xgb/
 modis_l3_daod_backfill/
+modis_l3_daod_comparison_2024/
+modis_l3_two_stage_qa_2024/
 aqua_l3_daod_movies/
 song2021_comparison/
+two_stage_tuning/
 !comparison_to_Song2021/
 !comparison_to_Song2021/*.png
 

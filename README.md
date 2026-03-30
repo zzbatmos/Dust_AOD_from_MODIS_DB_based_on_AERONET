@@ -14,6 +14,7 @@ The scientific idea is:
 3. Use the AERONET-derived dust AOD as the target for machine-learning models.
 4. Apply the trained models to MODIS DB observations and compare them with the
    empirical Li and Ginoux method and with previous studies.
+5. Extend the workflow to an experimental two-stage dust model with QA tiers.
 
 The repository contains both research scripts extracted from the original
 notebook and more production-style drivers for Level-2 and Level-3 MODIS DB
@@ -194,6 +195,31 @@ Important operational convention used in these workflows:
 - if DB total AOD exists but no dust estimate is produced, dust AOD is set to `0`
 - if DB total AOD exists and a dust estimate is produced, keep the positive value
 
+### Experimental two-stage and QA branch
+
+The repository also contains an experimental two-stage branch:
+
+- `two-stage-dust-model`
+
+Main scripts:
+
+- [train_modis_db_two_stage_xgb.py](/home/ec2-user/Research/Codex/train_modis_db_two_stage_xgb.py)
+- [apply_two_stage_dust_model_to_modis_db.py](/home/ec2-user/Research/Codex/apply_two_stage_dust_model_to_modis_db.py)
+- [DAOD_from_DB_L3_TwoStage.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_TwoStage.py)
+- [compare_l3_two_stage_qa_year.py](/home/ec2-user/Research/Codex/compare_l3_two_stage_qa_year.py)
+- [TWO_STAGE_METHOD.md](/home/ec2-user/Research/Codex/TWO_STAGE_METHOD.md)
+
+Current QA interpretation:
+
+- `QA>=1`: broad product, intentionally reduced to direct XGBoost
+- `QA>=2`: moderate-confidence two-stage dust
+- `QA>=3`: strict/high-confidence two-stage dust
+
+This gives users a practical choice between:
+
+- broad weak-dust coverage
+- increasingly conservative smoke-resistant dust products
+
 ### Li and Ginoux reference branch
 
 The repository also contains scripts to analyze Li and Ginoux style FMF-based
@@ -252,6 +278,7 @@ For more detail, see:
 
 - [WORKFLOW_MEMO.md](/home/ec2-user/Research/Codex/WORKFLOW_MEMO.md)
 - [SESSION_NOTES.md](/home/ec2-user/Research/Codex/SESSION_NOTES.md)
+- [TWO_STAGE_METHOD.md](/home/ec2-user/Research/Codex/TWO_STAGE_METHOD.md)
 
 ## Current Status
 
