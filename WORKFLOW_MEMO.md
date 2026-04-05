@@ -11,6 +11,7 @@ The core idea is:
 3. Train XGBoost models so dust AOD can be estimated from MODIS DB aerosol products.
 4. Apply the trained model to real MODIS granules and compare against simpler reference methods such as Li and Ginoux.
 5. Extend the ML workflow to a two-stage dust-detection plus dust-amount framework with QA tiers.
+6. Build long-term L3 daily, monthly, and trend products for Terra and Aqua.
 
 This memo is intended to let future sessions pick up the work quickly and extend it without re-deriving the current structure.
 
@@ -25,6 +26,8 @@ The workflow focuses on the following scientific tasks:
 5. Train XGBoost models against collocated MODIS DB products.
 6. Apply the trained MODIS model to a real Terra MODIS case on March 14, 2025.
 7. Build QA-tiered yearly L3 products so users can choose broad or conservative dust screening.
+8. Use DB aerosol-type QA structure to build aerosol-type-conditional dust detection and dust-fraction estimation.
+9. Apply the three L2 methods day by day over Aqua 2017 and aggregate them to daily and monthly `1x1` products.
 
 ## Data Foundations
 
@@ -52,6 +55,18 @@ The MODIS-side ML workflow uses two saved collocation pickles:
 - `../AERONET_MYD04_L2_collocation_with_SDA_data.pkl`
 
 These contain collocated AERONET inversion quantities, nearest AERONET SDA quantities, and MODIS DB retrieval statistics.
+
+This was extended to a QA-augmented archive and a merged all-site file:
+
+- `/home/ec2-user/Research/Codex/AERONET_MODIS_DB_collocation_files_with_QA`
+- `/home/ec2-user/Research/Codex/AERONET_MODIS_DB_collocation_all_sites_with_QA_and_SDA.pkl`
+
+The QA archive preserves the old DB summary statistics and adds:
+
+- raw masked `Quality_Assurance_Land`
+- decoded usefulness, confidence, aerosol type, and algorithm flag
+- aerosol-type and confidence histograms
+- dominant aerosol type and dominant algorithm flag
 
 ### Notebook anchor
 
@@ -249,6 +264,45 @@ Key files:
 - [modis_db_dust_aod550_metrics.json](/home/ec2-user/Research/Codex/modis_db_dust_aod550_xgb/modis_db_dust_aod550_metrics.json)
 - [modis_db_dust_aod550_feature_importance.csv](/home/ec2-user/Research/Codex/modis_db_dust_aod550_xgb/modis_db_dust_aod550_feature_importance.csv)
 
+### 7b. DB-aerosol-type-conditional branch
+
+This newer branch uses the actual DB aerosol type decoded from
+`Quality_Assurance_Land` as a routing variable and prior, while still using
+AERONET-derived dust targets as truth.
+
+Design note:
+
+- [DB_TYPE_CONDITIONAL_TRAINING_DESIGN.md](/home/ec2-user/Research/Codex/DB_TYPE_CONDITIONAL_TRAINING_DESIGN.md)
+
+Training scripts:
+
+- [train_modis_db_type_conditional_detection_xgb.py](/home/ec2-user/Research/Codex/train_modis_db_type_conditional_detection_xgb.py)
+- [train_modis_db_type_conditional_from_qa_xgb.py](/home/ec2-user/Research/Codex/train_modis_db_type_conditional_from_qa_xgb.py)
+
+Application and comparison scripts:
+
+- [apply_db_type_conditional_dust_model.py](/home/ec2-user/Research/Codex/apply_db_type_conditional_dust_model.py)
+- [compare_two_stage_vs_db_type_conditional.py](/home/ec2-user/Research/Codex/compare_two_stage_vs_db_type_conditional.py)
+
+Core structure:
+
+1. route each sample by DB aerosol type:
+   - `Dust`
+   - `Mixed`
+   - `Smoke/Sulfate`
+2. train type-specific dust classifiers against AERONET dust truth
+3. train type-specific dust-fraction regressors
+4. derive final QA from DB type plus ML output
+
+Scientific interpretation from the first QA-aware training pass:
+
+- DB `Dust` is the cleanest branch
+- DB `Mixed` is intermediate
+- DB `Smoke` still contains real AERONET dust cases
+
+So DB aerosol type should be used as a structured prior and routing variable,
+not as a hard truth mask.
+
 ### 8. FMF-based side branch
 
 There is also a parallel branch focused on FMF and Li and Ginoux style coarse-mode estimates.
@@ -285,8 +339,8 @@ Branch:
 
 - `two-stage-dust-model`
 
-This branch should remain separate from `main` until the two-stage method is
-tested over longer periods and more regions.
+This branch was initially developed separately, but the tested workflow has now
+been merged into `main`.
 
 ### 10. Terra 2024 L3 two-stage QA products
 
@@ -317,6 +371,182 @@ Current output/figure locations:
 - [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStage_2024](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStage_2024)
 - [/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024](/home/ec2-user/Research/Codex/modis_l3_two_stage_qa_2024)
 - [tracked QA climatology figures](/home/ec2-user/Research/Codex/comparison_to_two_stage_QA_2024)
+
+### 11. Full L3 comparison backfill and QA archive
+
+The repo now has a complete daily L3 comparison archive for both Terra and Aqua
+covering the current processed range.
+
+Backfill scripts:
+
+- [run_modis_l3_comparison_backfill.py](/home/ec2-user/Research/Codex/run_modis_l3_comparison_backfill.py)
+- [build_modis_l3_two_stage_qa.py](/home/ec2-user/Research/Codex/build_modis_l3_two_stage_qa.py)
+
+Main output directories:
+
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_LiGinoux](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_LiGinoux)
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_XGBoost](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_XGBoost)
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStage](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStage)
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStageQA](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MOD08_D3_TwoStageQA)
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MYD08_D3_LiGinoux](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MYD08_D3_LiGinoux)
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MYD08_D3_XGBoost](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MYD08_D3_XGBoost)
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MYD08_D3_TwoStage](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MYD08_D3_TwoStage)
+- [/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MYD08_D3_TwoStageQA](/home/ec2-user/Research/Codex/modis_l3_daod_backfill/MYD08_D3_TwoStageQA)
+
+Notes:
+
+- Terra raw two-stage includes one extra boundary file for `2001-12-31`
+- in-range `2002-2024` Terra and Aqua daily archives are complete for Li-Ginoux, direct XGBoost, raw two-stage, and QA-tier products
+
+### 12. Monthly products
+
+Monthly aggregation script:
+
+- [build_l3_monthly_products.py](/home/ec2-user/Research/Codex/build_l3_monthly_products.py)
+
+Monthly outputs:
+
+- [/home/ec2-user/Research/Codex/modis_l3_monthly_products](/home/ec2-user/Research/Codex/modis_l3_monthly_products)
+
+Important structure:
+
+- Li-Ginoux monthly files provide `dust_aod`, `total_aod`, and `n_days`
+- QA monthly files provide `dust_aod_qa1`, `dust_aod_qa2`, `dust_aod_qa3`, `total_aod`, and `n_days`
+- dimensions are `(year, month, lat, lon)`
+
+Aggregation rule:
+
+- if daily total AOD is missing, ignore the day
+- if total AOD exists but daily dust AOD is absent, count the day and set daily dust AOD to zero in the monthly mean
+
+### 13. Trend and significance analysis
+
+Trend script:
+
+- [compute_l3_monthly_trends.py](/home/ec2-user/Research/Codex/compute_l3_monthly_trends.py)
+
+Method:
+
+1. For each land grid box, compute monthly climatology from the monthly product.
+2. Deseasonalize by subtracting that climatology from the monthly series.
+3. Fit a linear trend to the monthly anomalies.
+4. Report trend in dust AOD per decade.
+5. Compute p values for the slope and retain significance maps for `p < 0.05`.
+
+Trend outputs:
+
+- [/home/ec2-user/Research/Codex/modis_l3_trends_2002_2024](/home/ec2-user/Research/Codex/modis_l3_trends_2002_2024)
+
+The trend files now include both dust-AOD and total-AOD trend variables:
+
+- `dust_aod_*_trend_per_decade`
+- `dust_aod_*_p_value`
+- `dust_aod_*_significant_p_lt_0p05`
+- `total_aod_trend_per_decade`
+- `total_aod_p_value`
+- `total_aod_significant_p_lt_0p05`
+
+### 14. Regional trend diagnostics
+
+Regional scripts:
+
+- [analyze_sahel_trends.py](/home/ec2-user/Research/Codex/analyze_sahel_trends.py)
+- [analyze_regime_shift_regions.py](/home/ec2-user/Research/Codex/analyze_regime_shift_regions.py)
+
+These support:
+
+- drawing region boxes on the trend maps
+- selecting representative positive- or negative-trend grid boxes
+- plotting deseasonalized monthly time series for `QA1`, `QA2`, and `QA3`
+- testing regime-shift hypotheses with period-mean and breakpoint-style comparisons
+
+Current interpretation from Aqua `QA2`:
+
+- southern Sahel band: positive dust-AOD shift centered around `2015`
+- northern band: marked dust-AOD decrease concentrated in `2020-2024`
+
+### 15. External context and QA-flag tests
+
+Niamey duststorm archive extractor:
+
+- [extract_niamey_duststorm_dates.py](/home/ec2-user/Research/Codex/extract_niamey_duststorm_dates.py)
+
+DB aerosol-type QA diagnostics:
+
+- [plot_modis_db_aerosol_type_flag.py](/home/ec2-user/Research/Codex/plot_modis_db_aerosol_type_flag.py)
+- [plot_modis_db_aerosol_type_diagnostics.py](/home/ec2-user/Research/Codex/plot_modis_db_aerosol_type_diagnostics.py)
+- [compare_db_flag_vs_two_stage.py](/home/ec2-user/Research/Codex/compare_db_flag_vs_two_stage.py)
+- [DB_AEROSOL_TYPE_NOTE.md](/home/ec2-user/Research/Codex/DB_AEROSOL_TYPE_NOTE.md)
+
+Main finding:
+
+- DB aerosol type is useful as an aerosol-regime prior
+- it is not reliable enough to use by itself as the final dust mask
+- the QA-aware ML methods are more selective than the raw DB dust flag in smoke-heavy scenes
+
+### 16. Aqua 2017 L2 day-by-day three-method workflow
+
+Goal:
+
+- process all Aqua `MYD04_L2` granules in `2017` without storing a full year of raw HDF downloads
+- compute Li-Ginoux, tuned two-stage, and DB-type-aware outputs day by day
+- save per-granule `.npz` outputs, then aggregate them to daily and monthly `1x1` grids
+
+Main scripts:
+
+- [run_aqua_l2_day_three_methods_noplot.py](/home/ec2-user/Research/Codex/run_aqua_l2_day_three_methods_noplot.py)
+- [run_l2_year_three_methods_noplot.py](/home/ec2-user/Research/Codex/run_l2_year_three_methods_noplot.py)
+- [build_l2_daily_monthly_1deg.py](/home/ec2-user/Research/Codex/build_l2_daily_monthly_1deg.py)
+
+Plotting/diagnostic scripts:
+
+- [plot_aqua_l2_day_global_mosaic.py](/home/ec2-user/Research/Codex/plot_aqua_l2_day_global_mosaic.py)
+- [plot_aqua_l2_day_qa_levels.py](/home/ec2-user/Research/Codex/plot_aqua_l2_day_qa_levels.py)
+- [plot_aqua_l2_day_raw_vs_qa_mosaic.py](/home/ec2-user/Research/Codex/plot_aqua_l2_day_raw_vs_qa_mosaic.py)
+- [plot_aqua_l2_day_dbtype_qa2_minus_raw.py](/home/ec2-user/Research/Codex/plot_aqua_l2_day_dbtype_qa2_minus_raw.py)
+- [plot_l2_monthly_jja_comparison.py](/home/ec2-user/Research/Codex/plot_l2_monthly_jja_comparison.py)
+
+Main year-run root:
+
+- `/home/ec2-user/Research/Codex/aqua_l2_2017_three_methods_noplot_by_day/MYD04_L2_2017-01-01_2017-12-31`
+
+Status:
+
+- all `365` days completed successfully
+- total per-granule `.npz` files: `28221`
+
+Daily `1x1` output:
+
+- `/home/ec2-user/Research/Codex/aqua_l2_2017_1deg_daily/MYD04_L2_three_methods_daily_1deg_2017.nc`
+
+Monthly `1x1` output:
+
+- `/home/ec2-user/Research/Codex/aqua_l2_2017_1deg_monthly/MYD04_L2_three_methods_monthly_1deg_2017.nc`
+
+Averaging semantics:
+
+- invalid total AOD pixels are excluded
+- for QA-thresholded methods, pixels with valid total AOD but QA below threshold contribute `dust_aod = 0`
+- monthly means are simple averages of the daily `1x1` means
+
+Current example monthly figure:
+
+- `/home/ec2-user/Research/Codex/aqua_l2_2017_1deg_monthly/MYD04_L2_three_methods_monthly_1deg_2017_JJA_comparison.png`
+
+This was used to compare the Sahel signal against independently reported
+duststorm days from Timeanddate. The archive only starts in `2010-10`, but it
+does confirm Niamey duststorm conditions on `2017-04-17`.
+
+MODIS aerosol-type QA-flag tools:
+
+- [plot_modis_db_aerosol_type_flag.py](/home/ec2-user/Research/Codex/plot_modis_db_aerosol_type_flag.py)
+- [compare_db_flag_vs_two_stage.py](/home/ec2-user/Research/Codex/compare_db_flag_vs_two_stage.py)
+
+Current interpretation:
+
+- the Deep Blue aerosol-type flag is useful as auxiliary QA or smoke context
+- it is not reliable enough to serve as a standalone dust mask
+- the tuned two-stage detector behaves better on the heavy smoke test case
 
 Operational interpretation:
 
