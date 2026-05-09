@@ -1018,3 +1018,69 @@ Next-session implementation reminder:
 - test first on the `2017-12-07` western Sahara/Sahel plume and the
   `2017-08-29` North America smoke-as-dust failure case before any broad
   production use
+
+### First High-AOD Dust-Rescue Test
+
+Implemented diagnostic script:
+
+- [apply_two_stage_high_aod_dust_rescue_test.py](/home/ec2-user/Research/Codex/apply_two_stage_high_aod_dust_rescue_test.py)
+
+This first version does not modify the default two-stage product. It reads the
+saved 2017 Aqua L2 NPZ files, reconstructs standard two-stage QA2 DAOD, and
+writes a separate rescued product.
+
+Initial rescue criteria:
+
+- `AOD550 >= 1.5`
+- Li-Ginoux AE-screened `DAOD >= 1.0`
+- DB aerosol type = `Dust`
+- two-stage dust probability `>= 0.35`
+- rescued DAOD = `max(two_stage_QA2, min(Li_Ginoux_DAOD, 0.95 * AOD550))`
+
+Rationale for cap:
+
+- the Li-Ginoux parameterization used in this workflow gives `FMF = 0.051`
+  when `AE = 0`, so the implied maximum coarse-mode fraction is approximately
+  `0.949`
+- therefore a `0.95 * AOD550` cap is a Li-Ginoux-consistent upper bound for
+  the first test
+
+Outputs:
+
+- [two_stage_high_aod_dust_rescue_test](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test)
+- [2017-12-07 North Africa figure](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/dec7_north_africa/MYD04_L2_2017-12-07_dec7_north_africa_two_stage_high_aod_rescue.png)
+- [2017-12-07 North Africa summary](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/dec7_north_africa/MYD04_L2_2017-12-07_dec7_north_africa_rescue_summary.csv)
+- [2017-08-29 North America figure](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/aug29_north_america/MYD04_L2_2017-08-29_aug29_north_america_two_stage_high_aod_rescue.png)
+- [2017-08-29 North America summary](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/aug29_north_america/MYD04_L2_2017-08-29_aug29_north_america_rescue_summary.csv)
+
+Key results:
+
+- `2017-12-07` high-Li plume core:
+  - standard two-stage QA2 mean DAOD: `0.522`
+  - rescued QA2 mean DAOD: `1.941`
+  - Li-Ginoux AE-screened mean DAOD: `1.958`
+  - rescued pixels: `1228/2725` valid AOD pixels (`45.1%`)
+- `2017-12-07` western plume:
+  - standard two-stage QA2 mean DAOD: `0.465`
+  - rescued QA2 mean DAOD: `1.123`
+  - Li-Ginoux AE-screened mean DAOD: `1.169`
+  - rescued pixels: `2087/9798` valid AOD pixels (`21.3%`)
+- `2017-08-29` North America full domain:
+  - standard two-stage QA2 mean DAOD: `0.0626`
+  - rescued QA2 mean DAOD: `0.0631`
+  - rescued pixels: `14/39304` valid AOD pixels (`0.04%`)
+- `2017-08-29` central false-dust candidate box:
+  - standard two-stage QA2 mean DAOD: `0.1238`
+  - rescued QA2 mean DAOD: `0.1246`
+  - rescued pixels: `8/13106` valid AOD pixels (`0.06%`)
+
+Initial interpretation:
+
+- this first high-AOD rescue rule successfully recovers the intense
+  `2017-12-07` Sahara/Sahel dust plume that the default two-stage QA2 product
+  suppressed
+- it does not materially increase DAOD in the `2017-08-29` North America smoke
+  case under the current thresholds
+- this is encouraging, but the rule still depends partly on Li-Ginoux DAOD, so
+  it should remain a separate enhanced-completeness QA product until broader
+  monthly and multi-case tests are completed
