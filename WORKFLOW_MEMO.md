@@ -28,6 +28,7 @@ The workflow focuses on the following scientific tasks:
 7. Build QA-tiered yearly L3 products so users can choose broad or conservative dust screening.
 8. Use DB aerosol-type QA structure to build aerosol-type-conditional dust detection and dust-fraction estimation.
 9. Apply the three L2 methods day by day over Aqua 2017 and aggregate them to daily and monthly `1x1` products.
+10. Evaluate a stricter suspect-veto screen on top of the two-stage product for August 2017 smoke cases and compare it against Li-Ginoux and the base two-stage workflow.
 
 ## Data Foundations
 
@@ -258,6 +259,137 @@ Current saved model directory:
 
 - [/home/ec2-user/Research/Codex/modis_db_dust_aod550_xgb](/home/ec2-user/Research/Codex/modis_db_dust_aod550_xgb)
 
+### 8. Two-Stage QA Workflow
+
+The current best balanced method is the two-stage ML workflow:
+
+1. Stage 1 dust detection classifier
+2. Stage 2 dust-fraction or dust-AOD estimation
+3. multiple QA thresholds so users can choose broad or conservative screening
+
+Current interpretation:
+
+- `QA1`: broad dust estimate
+- `QA2`: recommended balanced dust product
+- `QA3`: strict/high-confidence dust product
+
+This framework is preferred because:
+
+- it suppresses smoke much better than Li-Ginoux
+- it is more stable than the DB-aerosol-type-aware workflow
+- it preserves a useful balance between weak-dust sensitivity and smoke rejection
+
+The main code and products for the two-stage workflow include:
+
+- [DAOD_from_DB_L3_TwoStage.py](/home/ec2-user/Research/Codex/DAOD_from_DB_L3_TwoStage.py)
+- [compare_l3_two_stage_qa_year.py](/home/ec2-user/Research/Codex/compare_l3_two_stage_qa_year.py)
+- [TWO_STAGE_METHOD.md](/home/ec2-user/Research/Codex/TWO_STAGE_METHOD.md)
+
+### 9. DB-Aerosol-Type-Aware Workflow and Its Limitation
+
+The project also tested a DB-aerosol-type-conditional workflow in which DB
+aerosol type was used as a routing variable and prior.
+
+Useful files:
+
+- [DB_TYPE_CONDITIONAL_TRAINING_DESIGN.md](/home/ec2-user/Research/Codex/DB_TYPE_CONDITIONAL_TRAINING_DESIGN.md)
+- [DB_AEROSOL_TYPE_NOTE.md](/home/ec2-user/Research/Codex/DB_AEROSOL_TYPE_NOTE.md)
+- [DB_RETRIEVAL_STAGE_VS_OUTPUT_STAGE_NOTE.md](/home/ec2-user/Research/Codex/DB_RETRIEVAL_STAGE_VS_OUTPUT_STAGE_NOTE.md)
+- [SMOKE_AS_DUST_FAILURE_MODE_NOTE.md](/home/ec2-user/Research/Codex/SMOKE_AS_DUST_FAILURE_MODE_NOTE.md)
+
+Current interpretation:
+
+- DB aerosol type is useful as a diagnostic and audit variable
+- DB aerosol type is **not** reliable enough to serve as a strong positive dust
+  prior
+- once the upstream DB retrieval moves a smoke plume into a dust-like branch,
+  downstream AE and spectral behavior become difficult to recover
+
+So the DB-aerosol-type-aware method should not be treated as the main balanced
+product for the paper.
+
+### 10. Suspect-Veto Sensitivity Workflow
+
+To target smoke-as-dust failures without replacing the main two-stage workflow,
+an additional suspect-veto model was trained for the subset:
+
+- `DB aerosol type = Dust`
+- `DB algorithm flag = DeepBlue`
+- `two-stage probability >= 0.6`
+
+Main files:
+
+- [train_two_stage_suspect_veto.py](/home/ec2-user/Research/Codex/train_two_stage_suspect_veto.py)
+- [evaluate_two_stage_with_veto_cases.py](/home/ec2-user/Research/Codex/evaluate_two_stage_with_veto_cases.py)
+- [plot_two_stage_suspect_veto_results.py](/home/ec2-user/Research/Codex/plot_two_stage_suspect_veto_results.py)
+
+Main outputs:
+
+- [/home/ec2-user/Research/Codex/two_stage_suspect_veto](/home/ec2-user/Research/Codex/two_stage_suspect_veto)
+- [/home/ec2-user/Research/Codex/two_stage_suspect_veto_evaluation](/home/ec2-user/Research/Codex/two_stage_suspect_veto_evaluation)
+- [/home/ec2-user/Research/Codex/two_stage_suspect_veto_figures](/home/ec2-user/Research/Codex/two_stage_suspect_veto_figures)
+
+Summary:
+
+- the veto helps in the right direction for Amazon smoke and the `2017-08-29`
+  North America smoke case
+- but it also suppresses real dust in Kansas and over the Sahara/Arabian dust
+  belt
+- therefore the veto should be treated as an optional strict sensitivity
+  product, not the default main retrieval
+
+### 11. August 2017 Aqua Veto Reprocessing
+
+The suspect-veto workflow was applied day by day to all Aqua August 2017
+`MYD04_L2` data.
+
+Main scripts:
+
+- [run_aug2017_two_stage_veto_daily_1deg.py](/home/ec2-user/Research/Codex/run_aug2017_two_stage_veto_daily_1deg.py)
+- [build_aug2017_two_stage_veto_daily_nc.py](/home/ec2-user/Research/Codex/build_aug2017_two_stage_veto_daily_nc.py)
+- [plot_aug2017_two_stage_veto_difference.py](/home/ec2-user/Research/Codex/plot_aug2017_two_stage_veto_difference.py)
+- [plot_aug2017_two_stage_veto_global.py](/home/ec2-user/Research/Codex/plot_aug2017_two_stage_veto_global.py)
+- [plot_aug2017_two_stage_veto_sahara_arabia_daily.py](/home/ec2-user/Research/Codex/plot_aug2017_two_stage_veto_sahara_arabia_daily.py)
+- [plot_aug2017_li_vs_veto_comparison.py](/home/ec2-user/Research/Codex/plot_aug2017_li_vs_veto_comparison.py)
+- [plot_li_ginoux_global_month.py](/home/ec2-user/Research/Codex/plot_li_ginoux_global_month.py)
+
+Main outputs:
+
+- [/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_by_day](/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_by_day)
+- [MYD04_L2_two_stage_veto_daily_1deg_2017-08.nc](/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_daily_1deg/MYD04_L2_two_stage_veto_daily_1deg_2017-08.nc)
+
+Important comparison products:
+
+- global monthly mean veto effect:
+  - [aug2017_global_two_stage_veto_difference.png](/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_daily_1deg/global_difference/aug2017_global_two_stage_veto_difference.png)
+- North America daily effect:
+  - [/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_daily_1deg/north_america_difference_daily](/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_daily_1deg/north_america_difference_daily)
+- Sahara / Arabian daily effect:
+  - [/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_daily_1deg/sahara_arabia_daily](/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_daily_1deg/sahara_arabia_daily)
+- Li-Ginoux versus vetoed two-stage:
+  - [/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_daily_1deg/li_vs_veto_comparison](/home/ec2-user/Research/Codex/aqua_l2_2017_aug_two_stage_veto_daily_1deg/li_vs_veto_comparison)
+
+Scientific takeaway:
+
+- the veto reduces smoke-related false dust
+- but also reduces major desert dust
+- so it should remain a sensitivity test, not the headline method
+
+## Recommended Main Product for Paper Writing
+
+Based on all current testing, the best balanced recommendation is:
+
+- **main product:** two-stage ML with `QA1/QA2/QA3`
+- **recommended default estimate:** `QA2`
+- **optional strict sensitivity product:** `QA2 + suspect veto @ 0.7`
+
+Suggested framing:
+
+- Li-Ginoux as simple benchmark
+- two-stage QA family as the main new retrieval
+- DB-type-aware and veto workflows as sensitivity analyses that expose
+  limitations of the upstream DB retrieval and smoke-as-dust failure modes
+
 Key files:
 
 - [modis_db_dust_aod550_xgb.json](/home/ec2-user/Research/Codex/modis_db_dust_aod550_xgb/modis_db_dust_aod550_xgb.json)
@@ -311,11 +443,19 @@ Key scripts:
 
 - [replicate_li_ginoux_figure2_from_collocations.py](/home/ec2-user/Research/Codex/replicate_li_ginoux_figure2_from_collocations.py)
 - [train_apply_modis_fmf_gam.py](/home/ec2-user/Research/Codex/train_apply_modis_fmf_gam.py)
+- [plot_li_ginoux_ae_filtered_cases.py](/home/ec2-user/Research/Codex/plot_li_ginoux_ae_filtered_cases.py)
 
 Purpose:
 
 - replicate and test Li and Ginoux style AE-to-FMF parameterizations
 - compare against GAM alternatives
+- test an additional `AE < 1.4` screen for Li-Ginoux, which keeps the parameterized fine-mode fraction below about `0.7`
+
+Li-Ginoux sensitivity note:
+
+- Current Li-Ginoux case-study implementation uses `FMF = 0.085 * AE^2 + 0.336 * AE + 0.051` and `dust_AOD550 = (1 - FMF) * AOD550`, with the existing `SSA412 < SSA470` filter.
+- Because `FMF = 0.7` corresponds to `AE ~= 1.42`, future Li-Ginoux sensitivity plots should include an additional `AE < 1.4` or `AE < 1.42` screen when the intent is to exclude pixels whose AE implies fine-mode-dominated aerosol.
+- Three-case sensitivity tests were generated in [/home/ec2-user/Research/Codex/li_ginoux_ae_filtered_cases](/home/ec2-user/Research/Codex/li_ginoux_ae_filtered_cases). The `AE < 1.42` screen preserved the Kansas dust case nearly unchanged, strongly reduced the Amazon smoke false dust signal, and only modestly reduced the 2017-08-29 North America smoke-as-dust case because many false-dust pixels there have DB-conditioned low AE.
 
 This branch is useful for comparison and interpretation, but it is separate from the main DPR/LR-based dust-AOD target workflow.
 
@@ -776,6 +916,8 @@ For future work, the main recommended path is:
 5. Use [apply_dust_model_to_modis_db.py](/home/ec2-user/Research/Codex/apply_dust_model_to_modis_db.py) for case studies and direct Li-Ginoux comparison.
 6. Use the `DAOD_from_DB_L3_*` scripts for long daily production runs, but verify date coverage after completion because Earthdata/network interruptions can silently leave gaps.
 7. Use [build_song_style_monthly_daod.py](/home/ec2-user/Research/Codex/build_song_style_monthly_daod.py) and [compare_song2021_monthly_daod.py](/home/ec2-user/Research/Codex/compare_song2021_monthly_daod.py) when comparing our Aqua climatology against Song et al. monthly products.
+8. For L2-based production, use [run_l2_year_two_methods_noplot.py](/home/ec2-user/Research/Codex/run_l2_year_two_methods_noplot.py) and [build_l2_daily_monthly_0p5deg.py](/home/ec2-user/Research/Codex/build_l2_daily_monthly_0p5deg.py) when a native-L2 archive and `0.5°` products are needed.
+9. Treat `dust_aod_two_stage_qa2` as the default balanced product and `dust_aod_two_stage_high_aod_rescue_qa2` as an optional enhanced-completeness companion product.
 
 ## Known Scientific / Technical Caveats
 
@@ -786,6 +928,7 @@ For future work, the main recommended path is:
 5. The Li and Ginoux comparisons are useful references, but they represent a coarse-mode proxy rather than the same physical retrieval chain as the DPR/LR method.
 6. Long L3 Earthdata runs can stall due to authentication expiry, missing-month responses, or detached-session failures. Coverage validation is therefore part of the workflow, not an optional afterthought.
 7. Comparison against Song et al. requires attention to grid conventions: Song stores latitude ascending, whereas our monthly builder initially preserved descending latitude from the daily MODIS files.
+8. The high-AOD rescue improves missed intense dust plumes, but it relies on upstream DB dust classification and AE-screened Li-Ginoux support. It must remain separately flagged and should not replace standard `QA2`.
 
 ## Suggested Next Extensions
 
@@ -798,6 +941,7 @@ Likely next steps for future sessions:
 5. Harden the long L3 backfill system so it can re-authenticate and resume more reliably without relying on tmux session state.
 6. Diagnose why our current Aqua land-mean DAOD is about 31-33 % lower than the Song monthly reference over `60S-60N` for `2007-2019`.
 7. Add README-level documentation for external users of the GitHub repository.
+8. If the high-AOD rescue branch is kept, add a short user-facing product note explaining standard `QA2`, suspect-veto `QA2`, and high-AOD rescue `QA2` as separate use cases.
 
 ## Related Project Notes
 

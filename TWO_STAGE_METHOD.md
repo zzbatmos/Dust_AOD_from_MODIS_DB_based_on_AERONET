@@ -276,6 +276,115 @@ The 2024 Terra annual tests showed:
 This QA structure is therefore the current recommended way to expose the
 two-stage method to users.
 
+### Optional stricter screen: suspect-veto companion
+
+After the QA-tier workflow was established, an additional stricter screening
+layer was tested for smoke-as-dust failure cases.
+
+The idea was not to replace the two-stage product, but to add a targeted veto
+only for pixels that satisfy a suspicious combination:
+
+- DB aerosol type = `Dust`
+- DB algorithm flag = `DeepBlue`
+- two-stage dust probability already high enough to pass `QA2`
+
+For that suspect subset, a second classifier was trained to estimate whether
+the candidate dusty pixel is likely a true dust detection or a likely false
+dust detection. The resulting probability is then used as a veto:
+
+- if suspect-veto probability `< 0.7`, the `QA2` dust AOD is forced to `0`
+- otherwise the original two-stage `QA2` value is retained
+
+This should be interpreted as:
+
+- `QA2`
+  - main balanced product
+- `QA2 + suspect veto @ 0.7`
+  - optional stricter sensitivity product for smoke-heavy applications
+
+### Why the veto is not the default main product
+
+The suspect-veto improves behavior in the right direction for smoke scenes,
+including:
+
+- the Amazon smoke test case
+- the `2017-08-29` North America smoke-as-dust case
+
+But the same veto also suppresses real dust in:
+
+- the Kansas heavy-dust case
+- the Sahara and Arabian dust-source regions in August 2017
+
+So the veto is useful, but not balanced enough to replace the standard
+two-stage `QA2` product.
+
+### Recommended final interpretation
+
+The current best balanced method is:
+
+- `QA1`
+  - broad exploratory product
+- `QA2`
+  - recommended primary dust-AOD product
+- `QA3`
+  - strict high-confidence dust product
+- `QA2 + suspect veto @ 0.7`
+  - optional extra-conservative screening layer for smoke-sensitive
+    sensitivity analysis
+- `QA2 + high-AOD dust rescue`
+  - optional enhanced-completeness product for intense dust plumes where the
+    standard two-stage classifier is too conservative
+
+In other words:
+
+- the QA-tiered two-stage framework remains the main method
+- the veto is an add-on for stricter applications, not the new core retrieval
+- the high-AOD rescue is an add-on for completeness in intense dust events,
+  not a replacement for the default `QA2` product
+
+### Optional completeness layer: high-AOD dust rescue
+
+The high-AOD rescue was added after diagnosing a failure mode in which standard
+two-stage `QA2` missed intense dust plumes over North Africa and the Sahel,
+especially the `2017-12-07` case. The rescue is intentionally narrow: it can
+only increase the `QA2` dust AOD when several independent conditions are met.
+
+Default production criteria:
+
+- DB total `AOD550 >= 2.0`
+- AE-screened Li-Ginoux dust AOD `>= 0.8`
+- two-stage dust probability `>= 0.25`
+- DB aerosol type must be `Dust`
+- inferred Li-Ginoux fine-mode fraction must be `<= 0.7`
+- rescued dust AOD is capped at `0.95 * AOD550`
+
+The rescued value is:
+
+```text
+max(two_stage_QA2_DAOD, min(Li_Ginoux_AE_screened_DAOD, 0.95 * AOD550))
+```
+
+The original `QA2` output is kept unchanged. The rescued product is written as
+a separate variable and should be interpreted as a flagged retrieval regime.
+
+Validation summary:
+
+- December 2017 Aqua North Africa/Sahel:
+  - rescue substantially recovers known high-AOD dust plumes
+  - strongest Sahel case, `2017-12-07`: `QA2 = 0.294`, rescued `QA2 = 0.563`,
+    Li-Ginoux `0.602`
+- August 2017 Aqua North America smoke stress test:
+  - rescue remained inactive for the known `2017-08-29` smoke case
+  - North America and smoke-core increment were both `0.000000`
+
+Current recommendation:
+
+- default scientific product remains standard two-stage `QA2`
+- high-AOD rescue can be released as an optional enhanced-completeness
+  companion product
+- any paper or README should clearly state that rescued pixels depend on
+  upstream DB dust classification plus Li-Ginoux support
+
 ## Code Structure
 
 ### Training
@@ -512,6 +621,7 @@ Interpretation:
 4. It gives a clear place to tune conservativeness.
    - through the dust-label threshold
    - and the classifier probability cutoff
+   - and, if needed, through the optional suspect-veto layer
 
 ## Current Weaknesses and Caveats
 
@@ -555,6 +665,11 @@ Interpretation:
    - this may reduce hard threshold artifacts
 
 5. Add region-aware or season-aware features if available.
+
+6. Treat the suspect-veto as a sensitivity product, not the headline method.
+   - it is useful for diagnosing smoke-as-dust failures
+   - but it should not replace the standard `QA2` product without broader
+     validation over real desert dust regions
 
 ## Bottom Line
 
