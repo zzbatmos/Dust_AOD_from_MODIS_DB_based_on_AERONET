@@ -1278,3 +1278,65 @@ Interpretation:
 - this supports keeping the rescue layer as an enhanced-completeness product,
   but the December Sahel impact is large enough that the next test should plot
   daily maps for the high-impact days before broader production
+
+### High-Impact December Daily Rescue Maps
+
+Implemented daily map plotter:
+
+- [plot_high_aod_rescue_daily_maps.py](/home/ec2-user/Research/Codex/plot_high_aod_rescue_daily_maps.py)
+
+The script reads the regional daily test summary, selects the top rescue-impact
+days, and plots:
+
+- DB total `AOD550`
+- Li-Ginoux AE-screened DAOD
+- standard two-stage QA2 DAOD
+- two-stage QA2 + high-AOD rescue DAOD
+- rescue increment
+- rescued-pixel flag
+- two-stage dust probability
+- DB aerosol type
+
+The first map set used the current top rescue setting:
+
+- `AOD550 >= 2.0`
+- Li-Ginoux AE-screened `DAOD >= 0.8`
+- two-stage dust probability `>= 0.25`
+- DB aerosol type = `Dust`
+- rescue cap fraction = `0.95`
+
+Outputs:
+
+- [high_impact_daily_maps](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps)
+- [selected_high_impact_daily_maps.csv](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/selected_high_impact_daily_maps.csv)
+
+North Africa maps generated:
+
+- [2017-12-25 North Africa](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_north_africa/dec2017_north_africa_2017-12-25_high_aod_rescue_map.png)
+- [2017-12-07 North Africa](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_north_africa/dec2017_north_africa_2017-12-07_high_aod_rescue_map.png)
+- [2017-12-06 North Africa](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_north_africa/dec2017_north_africa_2017-12-06_high_aod_rescue_map.png)
+- [2017-12-08 North Africa](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_north_africa/dec2017_north_africa_2017-12-08_high_aod_rescue_map.png)
+- [2017-12-31 North Africa](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_north_africa/dec2017_north_africa_2017-12-31_high_aod_rescue_map.png)
+
+Sahel maps generated:
+
+- [2017-12-07 Sahel](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_sahel/dec2017_sahel_2017-12-07_high_aod_rescue_map.png)
+- [2017-12-25 Sahel](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_sahel/dec2017_sahel_2017-12-25_high_aod_rescue_map.png)
+- [2017-12-09 Sahel](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_sahel/dec2017_sahel_2017-12-09_high_aod_rescue_map.png)
+- [2017-12-06 Sahel](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_sahel/dec2017_sahel_2017-12-06_high_aod_rescue_map.png)
+- [2017-12-08 Sahel](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/high_impact_daily_maps/dec2017_sahel/dec2017_sahel_2017-12-08_high_aod_rescue_map.png)
+
+Visual interpretation:
+
+- the rescue increments are spatially localized to compact, high-AOD,
+  DB-dust-classified plume cores
+- `2017-12-07` Sahel shows the same failure mode diagnosed earlier: standard
+  two-stage QA2 suppresses a large high-AOD dust plume, while the rescue layer
+  restores it close to Li-Ginoux
+- `2017-12-25` Sahel shows another strong recovery case, mainly over the
+  central/eastern Sahel plume
+- the rescue does not visibly spread into broad low-AOD areas in these daily
+  maps, which supports the stricter `AOD550 >= 2.0` threshold
+- remaining caveat: these rescued areas are still conditional on the DB
+  upstream dust classification and Li-Ginoux coarse-mode signal, so they should
+  remain flagged as a separate enhanced-completeness retrieval regime
