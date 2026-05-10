@@ -1392,3 +1392,69 @@ Important caveat:
   contain `aerosol_type_code` or the rescue fields
 - therefore existing 2023 files can still be aggregated, but cannot show
   high-AOD rescue effects unless the L2 production is rerun
+
+### Two-Day End-to-End Production Validation
+
+Ran the updated production driver on Aqua `MYD04_L2` for `2017-12-07` through
+`2017-12-08`, using a separate validation directory:
+
+- [/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_validation_l2](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_validation_l2)
+
+L2 production status:
+
+- `2017-12-07`: downloaded `155` granules; `61` granules produced valid
+  derived NPZ outputs
+- `2017-12-08`: downloaded `161` granules; `58` granules produced valid
+  derived NPZ outputs
+
+The new NPZ schema was verified to include:
+
+- `li_ginoux_ae_screen_dust_aod`
+- `two_stage_qa2_dust_aod`
+- `two_stage_high_aod_rescue_qa2_dust_aod`
+- `high_aod_rescue_flag`
+- `high_aod_rescue_candidate`
+- `high_aod_rescue_increment`
+- `aerosol_type_code`
+
+Aggregated the validation run to daily/monthly `0.5x0.5` degree products:
+
+- [daily validation NetCDF](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_validation_l3/MYD04_L2_high_aod_rescue_daily_0p5deg_2017-12-07_2017-12-08.nc)
+- [monthly validation NetCDF](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_validation_l3/MYD04_L2_high_aod_rescue_monthly_0p5deg_2017-12-07_2017-12-08.nc)
+
+Validation statistics from daily `0.5` degree fields:
+
+- `2017-12-07` global mean:
+  - Li-Ginoux `0.101`
+  - two-stage QA2 `0.070`
+  - rescue QA2 `0.088`
+  - mean increment `0.018`
+- `2017-12-07` North Africa:
+  - Li-Ginoux `0.265`
+  - two-stage QA2 `0.189`
+  - rescue QA2 `0.244`
+  - mean increment `0.055`
+- `2017-12-07` Sahel:
+  - Li-Ginoux `0.602`
+  - two-stage QA2 `0.294`
+  - rescue QA2 `0.563`
+  - mean increment `0.269`
+- `2017-12-08` Sahel:
+  - Li-Ginoux `0.541`
+  - two-stage QA2 `0.286`
+  - rescue QA2 `0.463`
+  - mean increment `0.178`
+
+Sanity-check figures:
+
+- [2017-12-07 North Africa validation map](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_validation_l3/figures/MYD04_L2_2017-12-07_high_aod_rescue_l3_validation_north_africa.png)
+- [2017-12-08 North Africa validation map](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_validation_l3/figures/MYD04_L2_2017-12-08_high_aod_rescue_l3_validation_north_africa.png)
+
+Interpretation:
+
+- the production path correctly writes and aggregates the high-AOD rescue fields
+- the rescue activates strongly over the known December Sahel high-AOD dust
+  plume while preserving the standard two-stage QA2 field unchanged
+- this supports the next broader test: a month-scale December 2017 Aqua
+  production/aggregation run, or direct integration into the future 2023
+  Terra/Aqua reprocessing if the branch is accepted
