@@ -1340,3 +1340,55 @@ Visual interpretation:
 - remaining caveat: these rescued areas are still conditional on the DB
   upstream dust classification and Li-Ginoux coarse-mode signal, so they should
   remain flagged as a separate enhanced-completeness retrieval regime
+
+### Production Integration of High-AOD Rescue
+
+Implemented first production-path support for the high-AOD dust-rescue layer on
+branch `two-stage-high-aod-dust-rescue`.
+
+Updated L2 production driver:
+
+- [run_l2_year_two_methods_noplot.py](/home/ec2-user/Research/Codex/run_l2_year_two_methods_noplot.py)
+
+New per-granule NPZ fields added for future or reprocessed L2 output:
+
+- `li_ginoux_ae_screen_dust_aod`
+- `two_stage_qa2_dust_aod`
+- `two_stage_high_aod_rescue_qa2_dust_aod`
+- `high_aod_rescue_flag`
+- `high_aod_rescue_candidate`
+- `high_aod_rescue_increment`
+- `aerosol_type_code`
+
+Default rescue settings in the production driver:
+
+- `AOD550 >= 2.0`
+- AE-screened Li-Ginoux `DAOD >= 0.8`
+- two-stage dust probability `>= 0.25`
+- DB aerosol type must be `Dust`
+- cap rescued dust AOD at `0.95 * AOD550`
+- Li-Ginoux inferred `FMF <= 0.7`
+
+Updated 0.5-degree daily/monthly aggregation:
+
+- [build_l2_daily_monthly_0p5deg.py](/home/ec2-user/Research/Codex/build_l2_daily_monthly_0p5deg.py)
+
+New gridded variables:
+
+- `dust_aod_two_stage_high_aod_rescue_qa2`
+- `high_aod_rescued_pixel_fraction`
+
+Validation:
+
+- syntax check passed with `python -m py_compile`
+- one-day aggregation smoke test using existing Aqua 2023 output wrote:
+  - `/tmp/high_aod_rescue_agg_smoke_daily.nc`
+  - `/tmp/high_aod_rescue_agg_smoke_monthly.nc`
+- the smoke test confirms the new variables are written to the daily NetCDF
+
+Important caveat:
+
+- the existing 2023 NPZ archive was produced before this branch and does not
+  contain `aerosol_type_code` or the rescue fields
+- therefore existing 2023 files can still be aggregated, but cannot show
+  high-AOD rescue effects unless the L2 production is rerun
