@@ -1214,3 +1214,67 @@ Interpretation:
 - the next logical step is a limited daily regional test, not yet a global
   year-long run: start with December 2017 North Africa/Sahel and August 2017
   North America/Sahara stress regions
+
+### Limited Daily Regional High-AOD Rescue Tests
+
+Implemented daily regional test driver:
+
+- [run_high_aod_rescue_regional_daily_test.py](/home/ec2-user/Research/Codex/run_high_aod_rescue_regional_daily_test.py)
+
+The test used the current top rescue setting:
+
+- `AOD550 >= 2.0`
+- Li-Ginoux AE-screened `DAOD >= 0.8`
+- two-stage dust probability `>= 0.25`
+- DB aerosol type = `Dust`
+- rescue cap fraction = `0.95`
+
+Regions tested:
+
+- August 2017 North America smoke stress test: `132W-85W`, `32N-60N`
+- August 2017 North Africa/Sahara dust stress test: `20W-60E`, `0N-40N`
+- December 2017 North Africa/Sahara-Sahel dust stress test: `20W-60E`,
+  `0N-40N`
+- December 2017 West/Central Sahel focused test: `15W-25E`, `5N-18N`
+
+Outputs:
+
+- [regional_daily_top_setting](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting)
+- [regional_daily_summary.csv](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/regional_daily_summary.csv)
+- [regional_daily_all_tests.csv](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/regional_daily_all_tests.csv)
+- [August 2017 North America time series](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/aug2017_north_america/aug2017_north_america_timeseries.png)
+- [August 2017 North Africa time series](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/aug2017_north_africa/aug2017_north_africa_timeseries.png)
+- [December 2017 North Africa time series](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/dec2017_north_africa/dec2017_north_africa_timeseries.png)
+- [December 2017 Sahel time series](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/regional_daily_top_setting/dec2017_sahel/dec2017_sahel_timeseries.png)
+
+Daily-mean summary:
+
+| Regional test | Li-Ginoux | Two-stage QA2 | Rescued QA2 | Mean rescue increment | Mean rescued pixel fraction |
+|---|---:|---:|---:|---:|---:|
+| Aug 2017 North Africa | 0.3443 | 0.3278 | 0.3280 | 0.0003 | 0.00009 |
+| Aug 2017 North America | 0.0319 | 0.0239 | 0.0240 | 0.0002 | 0.00006 |
+| Dec 2017 North Africa | 0.1779 | 0.1206 | 0.1287 | 0.0081 | 0.00262 |
+| Dec 2017 Sahel | 0.3123 | 0.1779 | 0.2130 | 0.0351 | 0.01139 |
+
+Highest daily rescue increments:
+
+- Aug 2017 North Africa: `2017-08-25`, increment `0.0053`, rescued pixel
+  fraction `0.0018`
+- Aug 2017 North America: `2017-08-31`, increment `0.0035`, rescued pixel
+  fraction `0.0012`
+- Dec 2017 North Africa: `2017-12-25`, increment `0.0632`, rescued pixel
+  fraction `0.0205`
+- Dec 2017 Sahel: `2017-12-07`, increment `0.3092`, rescued pixel fraction
+  `0.0980`
+
+Interpretation:
+
+- the stricter rescue setting remains mostly inactive in the August 2017 North
+  America smoke stress region, including around the heavy-smoke period
+- it also has negligible monthly-scale effect over August 2017 North Africa,
+  suggesting it does not broadly inflate normal summer Saharan dust
+- it activates more strongly in December 2017 Sahel/North Africa, especially
+  on the known December 7 and December 25 high-AOD dust cases
+- this supports keeping the rescue layer as an enhanced-completeness product,
+  but the December Sahel impact is large enough that the next test should plot
+  daily maps for the high-impact days before broader production
