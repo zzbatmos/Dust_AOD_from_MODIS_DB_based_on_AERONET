@@ -1153,3 +1153,64 @@ Provisional recommendation after the first sensitivity test:
   of rescued pixels in the Aug 29 smoke case
 - the `AOD550 >= 2.0` setting appears cleaner for heavy-smoke false-positive
   control while preserving nearly the same Dec 7 plume recovery
+
+### Additional High-AOD Rescue Case Tests
+
+Added additional named cases to:
+
+- [apply_two_stage_high_aod_dust_rescue_test.py](/home/ec2-user/Research/Codex/apply_two_stage_high_aod_dust_rescue_test.py)
+
+Additional cases tested with the top sensitivity setting:
+
+- `AOD550 >= 2.0`
+- Li-Ginoux AE-screened `DAOD >= 0.8`
+- two-stage dust probability `>= 0.25`
+- DB aerosol type = `Dust`
+- rescue cap fraction = `0.95`
+
+Additional outputs:
+
+- [additional cases directory](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/additional_cases_top_setting)
+- [multi-case full-domain summary CSV](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/top_setting_multicase_full_domain_summary.csv)
+
+Full-domain results:
+
+| Case | Date | Li-Ginoux | Two-stage QA2 | Rescued QA2 | Rescued pixel fraction |
+|---|---:|---:|---:|---:|---:|
+| North America smoke | 2017-08-29 | 0.071 | 0.063 | 0.063 | 0.000 |
+| North Africa/Sahara-Sahel | 2017-12-07 | 0.297 | 0.212 | 0.273 | 0.019 |
+| West/Central Sahel | 2017-12-25 | 0.901 | 0.412 | 0.693 | 0.091 |
+| West/Central Sahel | 2017-02-05 | 0.528 | 0.295 | 0.370 | 0.028 |
+| Red Sea/Arabia | 2017-03-19 | 0.752 | 0.789 | 0.792 | 0.001 |
+| West/Central Sahel | 2017-10-31 | 0.376 | 0.272 | 0.281 | 0.003 |
+
+Important ROI results:
+
+- `2017-12-25` central Sahel:
+  - Li-Ginoux AE-screened mean DAOD: `1.173`
+  - two-stage QA2 mean DAOD: `0.529`
+  - rescued QA2 mean DAOD: `1.028`
+  - rescued pixels: `1922/11874` valid AOD pixels (`16.2%`)
+- `2017-02-05` western Sahel:
+  - Li-Ginoux AE-screened mean DAOD: `0.766`
+  - two-stage QA2 mean DAOD: `0.394`
+  - rescued QA2 mean DAOD: `0.509`
+  - rescued pixels: `579/11917` valid AOD pixels (`4.9%`)
+- `2017-03-19` Red Sea corridor:
+  - Li-Ginoux AE-screened mean DAOD: `1.490`
+  - two-stage QA2 mean DAOD: `1.547`
+  - rescued QA2 mean DAOD: `1.568`
+  - rescued pixels: `43/6118` valid AOD pixels (`0.7%`)
+
+Interpretation:
+
+- the stricter high-AOD rescue rule mainly activates where two-stage QA2 is
+  much lower than Li-Ginoux in very high-AOD DB-dust scenes
+- it does not force changes where the two-stage product already agrees with
+  Li-Ginoux, as in the March 19 Red Sea/Arabia case
+- the December 25 Sahel case shows the largest additional recovery among the
+  new tests and should be inspected visually before this rescue rule is used in
+  regional/monthly processing
+- the next logical step is a limited daily regional test, not yet a global
+  year-long run: start with December 2017 North Africa/Sahel and August 2017
+  North America/Sahara stress regions
