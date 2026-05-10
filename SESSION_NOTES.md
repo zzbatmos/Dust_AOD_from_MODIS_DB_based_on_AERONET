@@ -1526,3 +1526,88 @@ Interpretation:
 - the December monthly test strengthens the case that the high-AOD rescue is a
   useful enhanced-completeness companion product, while the base two-stage QA2
   remains the conservative default
+
+### August 2017 Aqua Smoke-Stress Rescue Production Test
+
+Ran the updated production driver for the full Aqua `MYD04_L2` August 2017
+month using 4 day-shards. This was the main smoke-failure stress test because
+the `2017-08-29` North America case is known to contain transported smoke that
+DB can misclassify as dust over barren/DeepBlue-surface regions.
+
+Production output:
+
+- [/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l2](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l2)
+- run root:
+  [/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l2/MYD04_L2_2017-08-01_2017-08-31](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l2/MYD04_L2_2017-08-01_2017-08-31)
+
+Production status:
+
+- `31/31` days completed
+- `2896` derived granule NPZ files produced
+
+Aggregated outputs:
+
+- [daily 0.5-degree NetCDF](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l3/MYD04_L2_high_aod_rescue_daily_0p5deg_2017-08.nc)
+- [monthly 0.5-degree NetCDF](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l3/MYD04_L2_high_aod_rescue_monthly_0p5deg_2017-08.nc)
+- [daily regional summary CSV](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l3/MYD04_L2_high_aod_rescue_daily_region_summary_2017-08.csv)
+
+Figures:
+
+- [global monthly comparison](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l3/figures/MYD04_L2_2017-08_high_aod_rescue_monthly_global.png)
+- [North America monthly comparison](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l3/figures/MYD04_L2_2017-08_high_aod_rescue_monthly_north_america.png)
+- [North Africa monthly comparison](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l3/figures/MYD04_L2_2017-08_high_aod_rescue_monthly_north_africa.png)
+- [2017-08-29 North America smoke-stress daily map](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_aug2017_l3/figures/MYD04_L2_2017-08-29_high_aod_rescue_daily_north_america.png)
+
+Key exact stress-test result for `2017-08-29`:
+
+- North America:
+  - Li-Ginoux `0.062899`
+  - two-stage QA2 `0.050310`
+  - rescue QA2 `0.050310`
+  - mean rescue increment `0.000000`
+  - rescued-pixel fraction `0.000000`
+- North America smoke-core subregion:
+  - Li-Ginoux `0.142980`
+  - two-stage QA2 `0.124521`
+  - rescue QA2 `0.124521`
+  - mean rescue increment `0.000000`
+  - rescued-pixel fraction `0.000000`
+
+August monthly means:
+
+- North America:
+  - two-stage QA2 `0.021977`
+  - rescue QA2 `0.022249`
+  - mean increment `0.000272`
+  - rescued-pixel fraction `0.000091`
+- North America smoke core:
+  - two-stage QA2 `0.039879`
+  - rescue QA2 `0.040009`
+  - mean increment `0.000130`
+  - rescued-pixel fraction `0.000056`
+- North Africa:
+  - two-stage QA2 `0.293017`
+  - rescue QA2 `0.293271`
+  - mean increment `0.000255`
+  - rescued-pixel fraction `0.000092`
+- Sahel:
+  - two-stage QA2 `0.297729`
+  - rescue QA2 `0.299029`
+  - mean increment `0.001300`
+  - rescued-pixel fraction `0.000468`
+- Global:
+  - two-stage QA2 `0.075690`
+  - rescue QA2 `0.076039`
+  - mean increment `0.000350`
+  - rescued-pixel fraction `0.000128`
+
+Interpretation:
+
+- the high-AOD rescue passes the targeted `2017-08-29` North America smoke
+  stress test: it adds no rescued dust AOD in either the broad North America
+  domain or the smoke-core subregion on that day
+- August monthly impact is extremely small in North America and globally
+- unlike December 2017, August North Africa/Sahel already has good agreement
+  between standard QA2 and Li-Ginoux, so the rescue remains mostly inactive
+- this supports keeping the high-AOD rescue as a flagged enhanced-completeness
+  companion product rather than replacing the default two-stage QA2 product
