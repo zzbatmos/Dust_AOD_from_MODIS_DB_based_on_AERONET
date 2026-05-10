@@ -1458,3 +1458,71 @@ Interpretation:
 - this supports the next broader test: a month-scale December 2017 Aqua
   production/aggregation run, or direct integration into the future 2023
   Terra/Aqua reprocessing if the branch is accepted
+
+### December 2017 Aqua Month-Scale Rescue Production Test
+
+Ran the updated production driver for the full Aqua `MYD04_L2` December 2017
+month using 4 day-shards:
+
+- output root:
+  [/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l2](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l2)
+- run root:
+  [/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l2/MYD04_L2_2017-12-01_2017-12-31](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l2/MYD04_L2_2017-12-01_2017-12-31)
+
+Production status:
+
+- `31/31` days completed
+- `1905` derived granule NPZ files produced
+- one transient Earthdata response error occurred for `2017-12-21`, but the
+  retry logic recovered and the month completed
+
+Aggregated outputs:
+
+- [daily 0.5-degree NetCDF](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l3/MYD04_L2_high_aod_rescue_daily_0p5deg_2017-12.nc)
+- [monthly 0.5-degree NetCDF](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l3/MYD04_L2_high_aod_rescue_monthly_0p5deg_2017-12.nc)
+- [daily regional summary CSV](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l3/MYD04_L2_high_aod_rescue_daily_region_summary_2017-12.csv)
+
+Monthly sanity figures:
+
+- [global monthly rescue comparison](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l3/figures/MYD04_L2_2017-12_high_aod_rescue_monthly_global.png)
+- [North Africa monthly rescue comparison](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/production_dec2017_l3/figures/MYD04_L2_2017-12_high_aod_rescue_monthly_north_africa.png)
+
+Top daily rescue effects by region:
+
+- Global:
+  - `2017-12-07`: Li `0.101`, QA2 `0.070`, rescue `0.088`,
+    increment `0.018`, rescued-pixel fraction `0.0058`
+  - `2017-12-25`: Li `0.106`, QA2 `0.067`, rescue `0.080`,
+    increment `0.014`, rescued-pixel fraction `0.0044`
+  - `2017-12-08`: Li `0.094`, QA2 `0.065`, rescue `0.077`,
+    increment `0.012`, rescued-pixel fraction `0.0040`
+- North Africa:
+  - `2017-12-07`: Li `0.265`, QA2 `0.189`, rescue `0.244`,
+    increment `0.055`, rescued-pixel fraction `0.0174`
+  - `2017-12-25`: Li `0.293`, QA2 `0.187`, rescue `0.230`,
+    increment `0.042`, rescued-pixel fraction `0.0137`
+  - `2017-12-08`: Li `0.248`, QA2 `0.176`, rescue `0.213`,
+    increment `0.036`, rescued-pixel fraction `0.0118`
+- Sahel:
+  - `2017-12-07`: Li `0.602`, QA2 `0.294`, rescue `0.563`,
+    increment `0.269`, rescued-pixel fraction `0.0851`
+  - `2017-12-25`: Li `0.808`, QA2 `0.439`, rescue `0.636`,
+    increment `0.197`, rescued-pixel fraction `0.0637`
+  - `2017-12-08`: Li `0.541`, QA2 `0.286`, rescue `0.463`,
+    increment `0.178`, rescued-pixel fraction `0.0574`
+- Sahara-Arabia:
+  - `2017-12-07`: Li `0.343`, QA2 `0.246`, rescue `0.320`,
+    increment `0.075`, rescued-pixel fraction `0.0236`
+  - `2017-12-25`: Li `0.311`, QA2 `0.223`, rescue `0.277`,
+    increment `0.053`, rescued-pixel fraction `0.0172`
+  - `2017-12-08`: Li `0.302`, QA2 `0.223`, rescue `0.272`,
+    increment `0.049`, rescued-pixel fraction `0.0160`
+
+Interpretation:
+
+- the rescue remains spatially and temporally selective at global scale
+- its largest impact is exactly where expected: high-AOD Sahel/North Africa
+  plume days where standard QA2 suppresses intense dust too strongly
+- the December monthly test strengthens the case that the high-AOD rescue is a
+  useful enhanced-completeness companion product, while the base two-stage QA2
+  remains the conservative default
