@@ -1084,3 +1084,72 @@ Initial interpretation:
 - this is encouraging, but the rule still depends partly on Li-Ginoux DAOD, so
   it should remain a separate enhanced-completeness QA product until broader
   monthly and multi-case tests are completed
+
+### High-AOD Rescue Threshold Sensitivity
+
+Implemented sensitivity driver:
+
+- [run_high_aod_rescue_sensitivity.py](/home/ec2-user/Research/Codex/run_high_aod_rescue_sensitivity.py)
+
+Threshold matrix tested:
+
+- `AOD550 >= 1.2, 1.5, 2.0`
+- Li-Ginoux AE-screened `DAOD >= 0.8, 1.0, 1.2`
+- two-stage dust probability `>= 0.25, 0.35, 0.45`
+- rescue cap fraction `0.85, 0.90, 0.95`
+- DB aerosol type set = `Dust` or `Dust,Mixed`
+
+Outputs:
+
+- [sensitivity output directory](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/sensitivity)
+- [candidate ranking CSV](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/sensitivity/high_aod_rescue_sensitivity_candidate_ranking.csv)
+- [ROI metrics CSV](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/sensitivity/high_aod_rescue_sensitivity_roi_metrics.csv)
+- [summary JSON](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/sensitivity/high_aod_rescue_sensitivity_summary.json)
+
+Sensitivity result:
+
+- `162` threshold combinations were tested
+- `145` passed the initial screen:
+  - Dec 7 plume-core recovery ratio relative to Li-Ginoux gap `>= 0.5`
+  - Aug 29 full-domain rescue increment `<= 0.002`
+  - Aug 29 central false-dust box rescue increment `<= 0.005`
+
+Best-ranked setting from the first two-case screen:
+
+- `AOD550 >= 2.0`
+- Li-Ginoux AE-screened `DAOD >= 0.8`
+- two-stage dust probability `>= 0.25`
+- DB aerosol type = `Dust`
+- rescue cap fraction = `0.95`
+
+Top-setting outputs:
+
+- [top sensitivity setting directory](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/top_sensitivity_setting)
+- [2017-12-07 top-setting figure](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/top_sensitivity_setting/dec7_north_africa/MYD04_L2_2017-12-07_dec7_north_africa_two_stage_high_aod_rescue.png)
+- [2017-08-29 top-setting figure](/home/ec2-user/Research/Codex/two_stage_high_aod_dust_rescue_test/top_sensitivity_setting/aug29_north_america/MYD04_L2_2017-08-29_aug29_north_america_two_stage_high_aod_rescue.png)
+
+Top-setting metrics:
+
+- `2017-12-07` high-Li plume core:
+  - standard two-stage QA2 mean DAOD: `0.522`
+  - rescued QA2 mean DAOD: `1.921`
+  - Li-Ginoux AE-screened mean DAOD: `1.958`
+  - rescued pixels: `1191/2725` valid AOD pixels (`43.7%`)
+- `2017-12-07` western plume:
+  - standard two-stage QA2 mean DAOD: `0.465`
+  - rescued QA2 mean DAOD: `1.113`
+  - Li-Ginoux AE-screened mean DAOD: `1.169`
+  - rescued pixels: `2013/9798` valid AOD pixels (`20.6%`)
+- `2017-08-29` North America:
+  - no rescued pixels in the full domain, upwind-smoke box, central false-dust
+    candidate box, or eastern downwind box
+
+Provisional recommendation after the first sensitivity test:
+
+- use the top-ranked stricter setting as the next test configuration rather
+  than the original v0 setting
+- the original v0 setting (`AOD550 >= 1.5`, Li `DAOD >= 1.0`, probability
+  `>= 0.35`, DB `Dust`, cap `0.95`) also passed, but it added a small number
+  of rescued pixels in the Aug 29 smoke case
+- the `AOD550 >= 2.0` setting appears cleaner for heavy-smoke false-positive
+  control while preserving nearly the same Dec 7 plume recovery
