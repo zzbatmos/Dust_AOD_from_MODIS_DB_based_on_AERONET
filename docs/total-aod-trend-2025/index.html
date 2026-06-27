@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MODIS Deep Blue Total AOD Trend and Recent Anomaly Analysis</title>
+  <style>
+    :root {
+      --paper: #fbf6ea;
+      --ink: #1d211c;
+      --muted: #5d6259;
+      --line: #d9cdb8;
+      --accent: #9a4f05;
+      --blue: #245b73;
+      --green: #536b2f;
+      --card: #fffdf8;
+      --warn: #fff0d6;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(201, 151, 71, 0.22), transparent 34rem),
+        linear-gradient(180deg, #f6efe1 0%, var(--paper) 32rem, #f9f5ec 100%);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.58;
+    }
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+    }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px 72px;
+    }
+    header {
+      padding: 58px 0 36px;
+      border-bottom: 1px solid rgba(70, 54, 27, 0.18);
+    }
+    .eyebrow {
+      margin: 0 0 16px;
+      color: var(--accent);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    h1 {
+      max-width: 950px;
+      margin: 0;
+      font-size: clamp(2.3rem, 5vw, 5.0rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+    .subtitle {
+      max-width: 850px;
+      margin: 26px 0 0;
+      color: #363c33;
+      font-size: 1.2rem;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.92rem;
+    }
+    nav a {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 253, 248, 0.65);
+      color: #412d14;
+      text-decoration: none;
+    }
+    section {
+      margin-top: 42px;
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: clamp(1.55rem, 3vw, 2.4rem);
+      line-height: 1.1;
+      letter-spacing: -0.028em;
+    }
+    h3 {
+      margin: 0 0 10px;
+      font-size: 1.12rem;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      letter-spacing: 0.01em;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .card {
+      padding: 18px;
+      background: rgba(255, 253, 248, 0.82);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(46, 35, 18, 0.06);
+    }
+    .metric {
+      display: block;
+      margin-top: 8px;
+      color: var(--blue);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 2rem;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .caption {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+    figure {
+      margin: 26px 0 34px;
+      padding: 16px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 22px 54px rgba(46, 35, 18, 0.08);
+    }
+    figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+      background: white;
+    }
+    figcaption {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 28px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      font-size: 0.95rem;
+    }
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid #e6dccb;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #efe3cf;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .note {
+      padding: 16px 18px;
+      margin: 22px 0;
+      background: var(--warn);
+      border-left: 5px solid #c06a00;
+      border-radius: 14px;
+      color: #3d3224;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+    .small {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    footer {
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    @media (max-width: 860px) {
+      .grid,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+      header {
+        padding-top: 38px;
+      }
+      figure {
+        padding: 10px;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">MODIS Deep Blue aerosol trend analysis</p>
+      <h1>Total AOD Trend and Recent Anomaly in the MODIS Deep Blue Production Record</h1>
+      <p class="subtitle">
+        This page summarizes a first-pass analysis of the long-term MODIS Deep Blue total aerosol optical depth
+        record and the unusually low recent AOD values in the local production-freeze Level-3 data archive.
+      </p>
+      <nav aria-label="Page sections">
+        <a href="#background">Background</a>
+        <a href="#headline">Headline Results</a>
+        <a href="#regional">Regional Decomposition</a>
+        <a href="#merra2">MERRA-2 Comparison</a>
+        <a href="#methods">Methods and Caveats</a>
+        <a href="#data">Data Files</a>
+      </nav>
+    </header>
+
+    <section id="background">
+      <h2>1. Background and Motivation</h2>
+      <p>
+        The original objective of this project is to estimate dust aerosol optical depth from MODIS Deep Blue
+        Level-2 aerosol retrievals using machine-learning methods trained with AERONET nonsphericity-based dust
+        information. During production analysis of the full Terra and Aqua MODIS Deep Blue record, the global
+        total AOD time series showed an unexpectedly strong decline in the most recent years, especially in 2025.
+      </p>
+      <p>
+        This webpage collects the diagnostic figures used to evaluate that behavior. The analysis asks three
+        practical questions: whether the recent low AOD is visible in the annual global mean, whether it is
+        spatially coherent or concentrated in a few regions, and whether an aerosol reanalysis such as NASA
+        MERRA-2 shows similar regional behavior.
+      </p>
+      <div class="note">
+        The current local production archive extends through <strong>2025</strong>. The page therefore focuses on
+        the 2024-2025 and 2025 anomalies. A 2026 anomaly analysis can be added after 2026 MODIS Level-3 products
+        are processed.
+      </div>
+    </section>
+
+    <section id="headline">
+      <h2>2. Headline Results</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Recent total AOD decrease</h3>
+          <span class="metric">&minus;0.055</span>
+          <p class="caption">2025 global total-AOD anomaly relative to the 2008-2017 reference mean.</p>
+        </div>
+        <div class="card">
+          <h3>Two-year anomaly</h3>
+          <span class="metric">&minus;0.036</span>
+          <p class="caption">2024-2025 mean total AOD minus the 2003-2019 mean over the MODIS DB valid domain.</p>
+        </div>
+        <div class="card">
+          <h3>Significant area</h3>
+          <span class="metric">29.4%</span>
+          <p class="caption">Area fraction with significant 2024-2025 total-AOD change at p &lt; 0.05 in a simple grid-cell t test.</p>
+        </div>
+      </div>
+
+      <figure>
+        <img src="assets/figures/global_mean_aod_annual_anomaly_2008_2017_reference.png" alt="Annual global mean AOD anomalies relative to 2008-2017">
+        <figcaption>
+          <strong>Figure 1.</strong> Annual global mean MODIS Deep Blue AOD anomalies relative to 2008-2017.
+          The black curve shows total AOD, while the orange and blue curves show dust AOD derived from the
+          two-stage machine-learning method and Li-Ginoux parameterization, respectively. The total-AOD decline
+          is most pronounced in 2024 and 2025.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/figures/total_aod_difference_significance_2024_2025_minus_2003_2019.png" alt="Total AOD difference and t statistic maps">
+        <figcaption>
+          <strong>Figure 2.</strong> Spatial difference and t-statistic maps for 2024-2025 total AOD relative to
+          2003-2019. Negative anomalies are widespread over several major land aerosol regions. Stippling marks
+          grid cells significant at p &lt; 0.05 using baseline interannual variability from 2003-2019.
+        </figcaption>
+      </figure>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Interpretation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2003-2019 total AOD mean</td>
+            <td>0.2957</td>
+            <td>Baseline mean over the MODIS DB valid retrieval domain.</td>
+          </tr>
+          <tr>
+            <td>2024-2025 total AOD mean</td>
+            <td>0.2583</td>
+            <td>Recent two-year mean over the same domain.</td>
+          </tr>
+          <tr>
+            <td>2024-2025 minus 2003-2019</td>
+            <td>&minus;0.0361</td>
+            <td>Large negative anomaly relative to the baseline period.</td>
+          </tr>
+          <tr>
+            <td>Significant negative area</td>
+            <td>25.0%</td>
+            <td>Most significant changes are decreases, not increases.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="regional">
+      <h2>3. Regional Co-Declines Explain the Recent Global Drop</h2>
+      <p>
+        The global time series alone is not enough to explain the behavior. East China began declining much
+        earlier, but the global mean remained relatively stable because other regions compensated. The recent
+        global drop occurs when multiple high-leverage regions are simultaneously below their earlier baselines.
+      </p>
+      <p>
+        The strongest defensible statement is: the 2024-2025 global total-AOD minimum reflects concurrent
+        negative anomalies across East China, tropical South America, North Africa/Sahel, Europe, CONUS, and the
+        broader residual land domain, with only small positive compensation from India.
+      </p>
+
+      <figure>
+        <img src="assets/figures/global_total_aod_decline_regional_decomposition.png" alt="Regional decomposition of global total AOD anomaly">
+        <figcaption>
+          <strong>Figure 3.</strong> Regional decomposition of the recent global total-AOD anomaly. Panel A shows
+          the global mean total AOD. Panel B shows regional anomalies. Panel C decomposes the global anomaly into
+          area-weighted regional contributions. In 2025, the negative contributions dominate the global anomaly.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/figures/global_total_aod_recent_period_anomaly_maps.png" alt="Spatial period anomaly maps">
+        <figcaption>
+          <strong>Figure 4.</strong> Spatial coherence of total-AOD anomalies for selected periods. The 2021-2023
+          period still contains strong positive regional anomalies, whereas the 2024-2025 mean shows broader
+          negative anomalies across multiple land aerosol regions.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/figures/east_asia_china_total_aod_annual_timeseries_2003_2025.png" alt="East China and East Asia total AOD time series">
+        <figcaption>
+          <strong>Figure 5.</strong> Regional mean total AOD over East China and broader East Asia. East China
+          shows a strong decline beginning around the early 2010s. The global mean did not drop as sharply at
+          that time because regional compensation outside China remained important.
+        </figcaption>
+      </figure>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Region</th>
+            <th>Mean regional anomaly, 2024-2025</th>
+            <th>Mean contribution to global anomaly</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>East China</td><td>&minus;0.178</td><td>&minus;0.0065</td></tr>
+          <tr><td>Tropical South America</td><td>&minus;0.076</td><td>&minus;0.0056</td></tr>
+          <tr><td>North Africa/Sahel</td><td>&minus;0.044</td><td>&minus;0.0054</td></tr>
+          <tr><td>Europe</td><td>&minus;0.050</td><td>&minus;0.0027</td></tr>
+          <tr><td>CONUS</td><td>&minus;0.023</td><td>&minus;0.0016</td></tr>
+          <tr><td>India</td><td>+0.058</td><td>+0.0020</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="merra2">
+      <h2>4. Comparison With NASA MERRA-2 Reanalysis</h2>
+      <p>
+        NASA MERRA-2 monthly aerosol diagnostics provide a useful comparison dataset, although they are not a
+        fully independent validation because the reanalysis assimilates satellite aerosol information. Here we
+        use the monthly MERRA-2 aerosol product, <code>M2TMNXAER v5.12.4</code>, focusing on total aerosol
+        extinction AOT at 550 nm (<code>TOTEXTTAU</code>) and dust extinction AOT at 550 nm (<code>DUEXTTAU</code>).
+      </p>
+
+      <figure>
+        <img src="assets/figures/merra2_modis_global_aod_anomaly_comparison.png" alt="MODIS and MERRA-2 global AOD anomaly comparison">
+        <figcaption>
+          <strong>Figure 6.</strong> MODIS Deep Blue and MERRA-2 annual AOD anomalies relative to 2008-2017.
+          MERRA-2 supports regional declines over East Asia and dust regions, but the all-grid global MERRA-2
+          total AOD is much more stable than the MODIS DB land/valid-domain total AOD. The domain mismatch is
+          important: MERRA-2 global means here include ocean, while MODIS DB results are based on valid DB grids.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/figures/merra2_regional_total_aod_anomaly_heatmap.png" alt="MERRA-2 regional total AOD anomaly heatmap">
+        <figcaption>
+          <strong>Figure 7.</strong> MERRA-2 regional total-AOD anomalies relative to 2008-2017. East China and
+          broader East Asia show strong recent negative anomalies, consistent with the MODIS DB regional
+          diagnosis. North Africa/Sahel and the Middle East also show lower recent dust-related aerosol loading.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/figures/merra2_total_dust_aod_2024_2025_minus_2008_2017_maps.png" alt="MERRA-2 total and dust AOD anomaly maps">
+        <figcaption>
+          <strong>Figure 8.</strong> MERRA-2 total and dust AOD anomalies for 2024-2025 relative to 2008-2017.
+          The dust AOD panel highlights negative anomalies over several major dust regions, including North
+          Africa/Sahel and the Middle East.
+        </figcaption>
+      </figure>
+
+      <table>
+        <thead>
+          <tr>
+            <th>MERRA-2 region</th>
+            <th>Total AOD anomaly, 2024-2025</th>
+            <th>Total AOD anomaly, 2025</th>
+            <th>Dust AOD anomaly, 2024-2025</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Global all-grid</td><td>+0.000</td><td>&minus;0.0049</td><td>&minus;0.0028</td></tr>
+          <tr><td>East China</td><td>&minus;0.078</td><td>&minus;0.090</td><td>&minus;0.0082</td></tr>
+          <tr><td>East Asia</td><td>&minus;0.055</td><td>&minus;0.063</td><td>&minus;0.0072</td></tr>
+          <tr><td>North Africa/Sahel</td><td>&minus;0.022</td><td>&minus;0.034</td><td>&minus;0.0325</td></tr>
+          <tr><td>Middle East</td><td>&minus;0.022</td><td>&minus;0.012</td><td>&minus;0.0276</td></tr>
+          <tr><td>India</td><td>+0.022</td><td>+0.019</td><td>&minus;0.0109</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="methods">
+      <h2>5. Methods and Caveats</h2>
+      <div class="two-col">
+        <div>
+          <h3>MODIS production data</h3>
+          <p>
+            The MODIS results are from the local <code>production_freeze_v1</code> Level-3 archive derived from
+            Terra <code>MOD04_L2</code> and Aqua <code>MYD04_L2</code> Deep Blue Level-2 products. The archive
+            contains daily and monthly gridded fields at 0.5 x 0.5 degree resolution for 2003-2025.
+          </p>
+          <p>
+            Total AOD comes from the Deep Blue product. Dust AOD is estimated using the two-stage XGBoost method
+            and the Li-Ginoux parameterization with the Angstrom-exponent/fine-mode-fraction screen used in the
+            production-freeze workflow.
+          </p>
+        </div>
+        <div>
+          <h3>Statistical treatment</h3>
+          <p>
+            Most anomaly plots use 2008-2017 as a reference period. The significance map compares the 2024-2025
+            mean against the 2003-2019 baseline distribution at each grid cell using a simple two-sided t-test
+            style statistic based on baseline interannual variability.
+          </p>
+          <p>
+            This test is diagnostic, not a final detection-and-attribution analysis. It does not correct for
+            autocorrelation, sampling changes, or possible instrument and retrieval changes.
+          </p>
+        </div>
+      </div>
+      <div class="note">
+        Key caveat: MERRA-2 global means shown here are all-grid values, while the MODIS Deep Blue global means
+        are based on valid DB retrieval grids. A stricter comparison should apply a common land or MODIS-valid
+        mask to MERRA-2.
+      </div>
+    </section>
+
+    <section id="data">
+      <h2>6. Data Files Used in This Page</h2>
+      <p>
+        The full Level-3 production archive is not included in this web folder. This page only includes selected
+        figures and compact CSV summaries.
+      </p>
+      <ul>
+        <li><a href="assets/data/global_mean_aod_annual_anomaly_2008_2017_reference.csv">Annual global MODIS anomaly CSV</a></li>
+        <li><a href="assets/data/total_aod_difference_significance_2024_2025_minus_2003_2019_summary.csv">MODIS significance summary CSV</a></li>
+        <li><a href="assets/data/global_total_aod_decline_regional_decomposition_summary.csv">Regional decomposition summary CSV</a></li>
+        <li><a href="assets/data/merra2_recent_anomaly_summary_2008_2017_reference.csv">MERRA-2 recent anomaly summary CSV</a></li>
+      </ul>
+      <p class="small">
+        Analysis scripts are located in the repository root, including
+        <code>plot_global_mean_aod_annual_anomaly_2008_2017.py</code>,
+        <code>plot_total_aod_recent_minus_baseline_significance.py</code>,
+        <code>plot_global_aod_decline_regional_decomposition.py</code>,
+        <code>process_merra2_monthly_aod_trends.py</code>, and
+        <code>plot_merra2_modis_aod_comparison.py</code>.
+      </p>
+    </section>
+
+    <footer>
+      <p>
+        Prepared for internal scientific discussion. Results should be treated as diagnostic until common-domain
+        MODIS and MERRA-2 comparisons, additional independent datasets, and retrieval/sampling checks are completed.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

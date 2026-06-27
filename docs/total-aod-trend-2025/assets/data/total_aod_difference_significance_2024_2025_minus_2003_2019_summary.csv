@@ -1,0 +1,11 @@
+metric,value
+baseline_years,2003-2019
+recent_years,2024-2025
+alpha_two_sided,0.050
+min_baseline_years_per_grid,10
+global_weighted_mean_baseline_total_aod,0.29566228
+global_weighted_mean_recent_total_aod,0.25826647
+global_weighted_mean_difference,-0.03613139
+area_weighted_fraction_significant,0.29433668
+area_weighted_fraction_significant_negative,0.24950088
+area_weighted_fraction_significant_positive,0.04483579
