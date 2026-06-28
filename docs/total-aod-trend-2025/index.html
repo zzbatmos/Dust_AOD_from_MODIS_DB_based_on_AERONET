@@ -228,7 +228,9 @@
       <nav aria-label="Page sections">
         <a href="#background">Background</a>
         <a href="#headline">Headline Results</a>
+        <a href="#update-2025">2025 Update</a>
         <a href="#regional">Regional Decomposition</a>
+        <a href="#m3-check">Operational M3 Check</a>
         <a href="#merra2">MERRA-2 Comparison</a>
         <a href="#methods">Methods and Caveats</a>
         <a href="#data">Data Files</a>
@@ -324,6 +326,142 @@
             <td>25.0%</td>
             <td>Most significant changes are decreases, not increases.</td>
           </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="update-2025">
+      <h2>Update: 2025 Single-Year Anomaly and Operational MODIS Check</h2>
+      <p class="small">
+        Added June 28, 2026 UTC. This update keeps the earlier 2024-2025 two-year analysis above, but adds a
+        stricter single-year diagnostic using 2025 alone as the target year. It also compares the result with
+        the operational 1 x 1 degree monthly MODIS products (<code>MOD08_M3</code> and <code>MYD08_M3</code>).
+      </p>
+      <p>
+        The single-year analysis strengthens the qualitative conclusion: <strong>2025 is the minimum-AOD year in
+        the 2003-2025 MODIS record analyzed here</strong>. In the production-freeze Level-2-derived Deep Blue
+        archive, the 2025 global mean total AOD is 0.241, compared with 0.294 for the 2003-2019 baseline. This is
+        a decrease of 0.053 AOD units, or about 18%. Relative to the 2003-2019 interannual variability, the
+        global anomaly corresponds to a z score of -8.05 and a simple two-sided p value of 7.35 x 10<sup>-7</sup>.
+      </p>
+      <div class="grid">
+        <div class="card">
+          <h3>2025 global AOD</h3>
+          <span class="metric">0.241</span>
+          <p class="caption">Production-freeze Terra/Aqua Deep Blue total AOD over the stable valid DB domain.</p>
+        </div>
+        <div class="card">
+          <h3>2025 anomaly</h3>
+          <span class="metric">&minus;0.053</span>
+          <p class="caption">2025 minus the 2003-2019 baseline mean.</p>
+        </div>
+        <div class="card">
+          <h3>Rank</h3>
+          <span class="metric">1 / 23</span>
+          <p class="caption">2025 is the lowest annual global mean AOD year in 2003-2025.</p>
+        </div>
+      </div>
+
+      <figure>
+        <img src="assets/figures/total_aod_2025_monthly_and_annual_strength.png" alt="2025 monthly and annual total AOD anomaly strength">
+        <figcaption>
+          <strong>Figure 9.</strong> Single-year 2025 anomaly strength. The upper panel compares monthly global
+          mean total AOD in 2025 with the 2003-2019 monthly baseline distribution. The lower panel shows annual
+          anomalies relative to 2008-2017. The 2025 annual anomaly is the strongest negative value in the record.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/figures/total_aod_2025_minus_2003_2019_maps_significance.png" alt="2025 total AOD anomaly and significance maps">
+        <figcaption>
+          <strong>Figure 10.</strong> Spatial pattern and statistical strength of the 2025 anomaly relative to
+          2003-2019. Stippling marks grid cells with p &lt; 0.05 in a simple baseline-variance t-test. About 27.7%
+          of the valid domain is significant, with 25.3% significant negative area and only 2.4% significant
+          positive area.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/figures/total_aod_2025_regional_contribution_decomposition.png" alt="2025 regional contribution decomposition">
+        <figcaption>
+          <strong>Figure 11.</strong> Regional contribution decomposition for the 2025 global anomaly. The 2025
+          minimum is not caused by one region alone. Negative contributions come from the broader land DB domain,
+          tropical South America, North Africa/Sahel, East China, Europe, CONUS, and the Middle East, while India
+          provides a small positive offset.
+        </figcaption>
+      </figure>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Region</th>
+            <th>Regional anomaly in 2025</th>
+            <th>Contribution to global anomaly</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Other land DB domain</td><td>&minus;0.039</td><td>&minus;0.0223</td></tr>
+          <tr><td>Tropical South America</td><td>&minus;0.143</td><td>&minus;0.0105</td></tr>
+          <tr><td>North Africa/Sahel</td><td>&minus;0.069</td><td>&minus;0.0084</td></tr>
+          <tr><td>East China</td><td>&minus;0.200</td><td>&minus;0.0073</td></tr>
+          <tr><td>Europe</td><td>&minus;0.058</td><td>&minus;0.0031</td></tr>
+          <tr><td>CONUS</td><td>&minus;0.022</td><td>&minus;0.0016</td></tr>
+          <tr><td>Middle East</td><td>&minus;0.024</td><td>&minus;0.0010</td></tr>
+          <tr><td>India</td><td>+0.040</td><td>+0.0013</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="m3-check">
+      <h2>Operational MOD08_M3/MYD08_M3 Quick-Look Check</h2>
+      <p>
+        To test whether the low 2025 AOD is specific to the local Level-2 production workflow, we also analyzed
+        the operational monthly MODIS atmosphere products, <code>MOD08_M3</code> and <code>MYD08_M3</code>. These
+        products provide 1 x 1 degree monthly statistics from the official Level-3 processing chain. The quick
+        check extracted Dark Target land/ocean AOD, Dark Target land QA-weighted AOD, Deep Blue land AOD, and the
+        operational Dark Target + Deep Blue combined AOD.
+      </p>
+      <p>
+        The operational M3 products should not be treated as identical to the production-freeze Level-2-derived
+        archive. Their absolute AOD values differ because the gridding, daily/monthly statistics, QA weighting,
+        and valid sampling domain are different. However, the key qualitative result is robust: <strong>2025 is
+        also the lowest year in all four operational M3 AOD fields examined</strong>.
+      </p>
+
+      <figure>
+        <img src="assets/figures/modis_m3_dt_db_global_annual_aod.png" alt="Operational MOD08 and MYD08 M3 annual AOD time series">
+        <figcaption>
+          <strong>Figure 12.</strong> Annual global mean AOD from operational Terra/Aqua monthly M3 products. The
+          upper panel shows absolute AOD; the lower panel shows anomalies relative to each product's 2008-2017
+          mean. All four operational M3 fields reach their minimum in 2025.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="assets/figures/production_freeze_vs_modis_m3_db_global_annual_compare.png" alt="Production freeze versus operational M3 Deep Blue annual comparison">
+        <figcaption>
+          <strong>Figure 13.</strong> Direct comparison between the production-freeze Level-2-derived Deep Blue
+          total AOD and the operational M3 Deep Blue land AOD. The absolute values differ substantially, but the
+          anomaly patterns are related. The anomaly correlation is 0.83 using each product's own valid domain and
+          0.96 when the production field is restricted to the M3 valid mask.
+        </figcaption>
+      </figure>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Operational M3 field</th>
+            <th>2008-2017 mean</th>
+            <th>2025 AOD</th>
+            <th>2025 anomaly</th>
+            <th>Rank</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Dark Target land+ocean AOD</td><td>0.1698</td><td>0.1560</td><td>&minus;0.0138</td><td>lowest</td></tr>
+          <tr><td>Dark Target land QA-weighted AOD</td><td>0.2281</td><td>0.2009</td><td>&minus;0.0272</td><td>lowest</td></tr>
+          <tr><td>Deep Blue land AOD</td><td>0.2167</td><td>0.1828</td><td>&minus;0.0340</td><td>lowest</td></tr>
+          <tr><td>Dark Target + Deep Blue combined AOD</td><td>0.1748</td><td>0.1589</td><td>&minus;0.0160</td><td>lowest</td></tr>
         </tbody>
       </table>
     </section>
@@ -491,6 +629,10 @@
         <li><a href="assets/data/total_aod_difference_significance_2024_2025_minus_2003_2019_summary.csv">MODIS significance summary CSV</a></li>
         <li><a href="assets/data/global_total_aod_decline_regional_decomposition_summary.csv">Regional decomposition summary CSV</a></li>
         <li><a href="assets/data/merra2_recent_anomaly_summary_2008_2017_reference.csv">MERRA-2 recent anomaly summary CSV</a></li>
+        <li><a href="assets/data/total_aod_2025_single_year_summary.csv">2025 single-year anomaly summary CSV</a></li>
+        <li><a href="assets/data/total_aod_2025_regional_contributions.csv">2025 regional contribution CSV</a></li>
+        <li><a href="assets/data/total_aod_2025_m3_corroboration.csv">Operational M3 2025 corroboration CSV</a></li>
+        <li><a href="assets/data/production_freeze_vs_modis_m3_db_global_annual_compare.csv">Production-freeze versus M3 DB comparison CSV</a></li>
       </ul>
       <p class="small">
         Analysis scripts are located in the repository root, including
@@ -498,7 +640,9 @@
         <code>plot_total_aod_recent_minus_baseline_significance.py</code>,
         <code>plot_global_aod_decline_regional_decomposition.py</code>,
         <code>process_merra2_monthly_aod_trends.py</code>, and
-        <code>plot_merra2_modis_aod_comparison.py</code>.
+        <code>plot_merra2_modis_aod_comparison.py</code>. The June 28 update also uses
+        <code>process_modis_m3_dt_db_aod.py</code>, <code>plot_modis_m3_dt_db_quicklook.py</code>, and
+        <code>analyze_total_aod_2025_single_year_anomaly.py</code>.
       </p>
     </section>
 
