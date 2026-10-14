@@ -40,7 +40,7 @@ DIMENSIONS = set("""reference target population model features scheme QA scope g
     component bin bin_low bin_high event site_key site Site repeat fold CV_region year lat lon wavelength
     row_id split_id point_index threshold row_order comparison_support selected_estimator figure panel axis_max
     case pixel_index swath_row swath_col role source_record_index date granule
-    calibration_reserved sample month db_type algorithm aod_bin regime subset
+    calibration_reserved sample platform variable month db_type algorithm aod_bin regime subset
     minimum_rows seasonal_minimum_calendar_months anomaly_minimum_years
     exploratory_below_sites expected_repeats""".split())
 COUNTS = set("""n rows count sites unique_sites unique_rows unique_site_months
@@ -49,7 +49,7 @@ COUNTS = set("""n rows count sites unique_sites unique_rows unique_site_months
     repeats n_calendar_months cell_months selected_rows selected_sites calibration_records
     eligible_sites overridden_sites parent_events excluded_events collocations
     training_rows training_sites training_positive_rows training_positive_sites
-    evaluation_positive_rows qualifying_sites qualifying_cells input_rows paired_rows dropped_rows""".split())
+    evaluation_positive_rows qualifying_sites qualifying_cells input_rows paired_rows dropped_rows rows_2017""".split())
 
 
 def digest(path: Path) -> str:
