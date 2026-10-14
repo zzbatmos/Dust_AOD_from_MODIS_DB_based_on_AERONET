@@ -133,7 +133,7 @@ def audit(root):
                   registry_sha256=manifest["registry_sha256"], warnings=warnings,
                   missing_main_figures=manifest["missing_main_figures"],
                   missing_supplementary_figures=manifest.get("missing_supplementary_figures"),
-                  status="Mechanical checks passed; incomplete figure set; human/CVD review remains separate")
+                  status="Mechanical checks passed; coverage is reported by missing_* fields; human/CVD review remains separate")
     (root / "mechanical_QA.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
 
