@@ -1,6 +1,6 @@
 # DBDust v2.0.0: freeze specification
 
-Instructions for the implementation agent. Version of this spec: 2026-10-14.
+Instructions for the implementation agent. Version of this spec: 2026-10-13.
 Working name of the algorithm: **DBDust** (the authors may rename it before the
 release is tagged; a rename is a find-and-replace and must happen before tagging).
 
