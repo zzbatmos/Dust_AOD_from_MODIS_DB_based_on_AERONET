@@ -45,7 +45,7 @@ def table1(registry):
         rows.append(row)
     df = pd.DataFrame(rows)
     lines = [r"\begin{table}[htbp]", r"\centering", r"\caption{Pixel-level skill at held-out sites against the primary AERONET reference.}",
-             r"\label{tab:pixel_skill}", r"\begingroup\fontsize{6.5}{8}\selectfont\setlength{\tabcolsep}{1.5pt}",
+             r"\label{tab:pixel_skill}", r"\begingroup\fontsize{7}{9}\selectfont\setlength{\tabcolsep}{1.5pt}",
              r"\begin{tabular}{lrrrrrrrrrrrr}", r"\toprule",
              r"Method & $N$ & Precision & Recall & FPR & F1 & AUC & Brier & Bias & MAE & RMSE & $R^2$ & EE \\", r"\midrule"]
     for row in rows:
@@ -60,12 +60,15 @@ def table1(registry):
         "Baseline rows use their own available populations, identified in CSV; screened LG25 "
         "requires SSA and has a smaller population. The DB aerosol-type baseline is the "
         "training-type conditional mean, not a binary DB-dust flag. Baseline classification "
-        "metrics use their saved scores/rules; deterministic scores are not calibrated "
+        "metrics use their saved scores/rules at 0.6; deterministic scores are not calibrated "
         "probabilities. DAOD metrics are at 550 nm. EE is the fraction within "
         "+/-(0.05 + 20% of reference DAOD). Intervals and exact source selectors are "
         "provided in Table01_provenance.json. No scores were recomputed from deployment models."
     )
-    return df, "\n".join(lines) + "\n", notes, evidence
+    latex = "\n".join(lines) + "\n"
+    latex = latex.replace(r"\end{table}", r"\par\smallskip\begin{minipage}{\linewidth}\fontsize{7}{9}\selectfont "
+                          + tex(notes) + r"\end{minipage}" + "\n" + r"\end{table}")
+    return df, latex, notes, evidence
 
 
 def table2(registry):
@@ -91,7 +94,7 @@ def table2(registry):
     df = pd.DataFrame(rows)
     lines = [r"\begin{table}[htbp]", r"\centering",
              r"\caption{Seasonal land DAOD statistics against CALIOP at 550 nm.}",
-             r"\label{tab:global_skill}", r"\begingroup\fontsize{6.5}{8}\selectfont\setlength{\tabcolsep}{1pt}",
+             r"\label{tab:global_skill}", r"\begingroup\fontsize{7}{9}\selectfont\setlength{\tabcolsep}{1pt}",
              r"\begin{tabular}{lrrrrrrrrrrrrrrrr}", r"\toprule",
              "Method & " + " & ".join(r"\multicolumn{4}{c}{" + p + "}" for p in periods) + r" \\",
              " & " + " & ".join(["Mean & Bias & RMSE & $r$"] * 4) + r" \\", r"\midrule"]
@@ -116,7 +119,10 @@ def table2(registry):
         "has different support and its own CALIOP mean/count; comparisons across blocks "
         "are not paired. No statistical confidence intervals are supplied by these tables."
     )
-    return df, "\n".join(lines) + "\n", notes, evidence
+    latex = "\n".join(lines) + "\n"
+    latex = latex.replace(r"\end{table}", r"\par\smallskip\begin{minipage}{\linewidth}\fontsize{7}{9}\selectfont "
+                          + tex(notes) + r"\end{minipage}" + "\n" + r"\end{table}")
+    return df, latex, notes, evidence
 
 
 def main():
