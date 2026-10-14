@@ -14,6 +14,34 @@ def test_supplement_requires_both_seasonal_pages():
     assert missing_supplementary(complete | {"FigS13"}) == ["FigS13"]
 
 
+def test_assemble_only_never_rerenders_or_compiles(tmp_path, monkeypatch):
+    import subprocess
+    import sys
+    from paper import review_bundle
+    from paper.numbers import digest
+    registry = tmp_path / "registry.json"
+    registry.write_text("{}")
+    root = tmp_path / "bundle"
+    folder = root / "si"
+    folder.mkdir(parents=True)
+    (folder / "FigS13a_maps.pdf").write_bytes(b"fake PDF for command routing test")
+    (folder / "FigS13a_provenance.json").write_text(json.dumps({"registry_sha256": digest(registry)}))
+    (folder / "FigS13a_caption.md").write_text("A caption.")
+    calls = []
+    def run(command, **kwargs):
+        calls.append(command)
+        assert command[0] in {"pdfunite", "pdffonts"}
+        return subprocess.CompletedProcess(command, 0, "fonts", "")
+    monkeypatch.setattr(review_bundle.subprocess, "run", run)
+    monkeypatch.setattr(sys, "argv", ["bundle", "--registry", str(registry), "--output-dir", str(root),
+                                     "--assemble-only", "--supplement-tables"])
+    review_bundle.main()
+    manifest = json.loads((root / "review_manifest.json").read_text())
+    assert "FigS13" in manifest["missing_supplementary_figures"]
+    assert len(manifest["figures"]) == 1
+    assert [c[0] for c in calls] == ["pdfunite", "pdffonts"]
+
+
 def test_true_type_embedded_font_passes():
     report = "header\n----\nNAME CID TrueType Identity-H yes yes yes 35 0\n"
     assert font_check(report) == 1

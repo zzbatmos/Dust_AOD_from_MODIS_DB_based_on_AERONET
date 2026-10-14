@@ -43,7 +43,10 @@ def main():
     parser.add_argument("--figures", nargs="+", choices=list(MODULES), default=["1", "2", "4", "6", "7", "S5"])
     parser.add_argument("--image-dir", type=Path, help="Verified GIBS context cache; required for Figure 8")
     parser.add_argument("--supplement-tables", action="store_true", help="Export and compile available SI tables S2-S8")
+    parser.add_argument("--assemble-only", action="store_true", help="Check existing figure provenance and rebuild contacts/manifest without rerendering")
     args = parser.parse_args()
+    if args.assemble_only:
+        args.figures = []
     if "8" in args.figures and args.image_dir is None:
         parser.error("Figure 8 requires --image-dir")
     root = args.output_dir.resolve()
@@ -62,19 +65,20 @@ def main():
             command += ["--image-dir", str(args.image_dir)]
         subprocess.run(command,
                        check=True, env=env)
-    subprocess.run([sys.executable, "-m", "paper.tables", "--registry", str(args.registry),
-                    "--output-dir", str(root / "tables")], check=True, env=env)
-    wrapper = root / "tables/table_preview.tex"
-    wrapper.write_text("\\documentclass{article}\n\\usepackage[a4paper,margin=10mm]{geometry}\n"
-                       "\\usepackage[T1]{fontenc}\n\\usepackage{booktabs}\n\\begin{document}\n"
-                       "\\input{Table01.tex}\n\\clearpage\n\\input{Table02.tex}\n\\end{document}\n")
-    compile_result = subprocess.run(["pdflatex", "-halt-on-error", "-interaction=nonstopmode", wrapper.name],
-                                    cwd=wrapper.parent, capture_output=True, text=True)
-    (wrapper.parent / "compile_output.txt").write_text(compile_result.stdout + compile_result.stderr)
-    compile_result.check_returncode()
-    if "Overfull" in compile_result.stdout or "Font shape" in compile_result.stdout:
-        raise ValueError("Inspect table overflow/font-substitution warning")
-    if args.supplement_tables:
+    if not args.assemble_only:
+        subprocess.run([sys.executable, "-m", "paper.tables", "--registry", str(args.registry),
+                        "--output-dir", str(root / "tables")], check=True, env=env)
+        wrapper = root / "tables/table_preview.tex"
+        wrapper.write_text("\\documentclass{article}\n\\usepackage[a4paper,margin=10mm]{geometry}\n"
+                           "\\usepackage[T1]{fontenc}\n\\usepackage{booktabs}\n\\begin{document}\n"
+                           "\\input{Table01.tex}\n\\clearpage\n\\input{Table02.tex}\n\\end{document}\n")
+        compile_result = subprocess.run(["pdflatex", "-halt-on-error", "-interaction=nonstopmode", wrapper.name],
+                                        cwd=wrapper.parent, capture_output=True, text=True)
+        (wrapper.parent / "compile_output.txt").write_text(compile_result.stdout + compile_result.stderr)
+        compile_result.check_returncode()
+        if "Overfull" in compile_result.stdout or "Font shape" in compile_result.stdout:
+            raise ValueError("Inspect table overflow/font-substitution warning")
+    if args.supplement_tables and not args.assemble_only:
         for module in ("paper.supplement_tables", "paper.selection_table", "paper.configuration_tables"):
             subprocess.run([sys.executable, "-m", module, "--registry", str(args.registry),
                             "--output-dir", str(root / "tables" / "supplement"), "--compile"],
