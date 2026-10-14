@@ -1,0 +1,25 @@
+# Verified Linux x86_64 / Python 3.13.9
+certifi==2026.1.4
+cftime==1.6.5
+iniconfig==1.1.1
+joblib==1.4.2
+netcdf4==1.7.3
+numpy==2.1.3
+packaging==24.2
+pandas==2.2.3
+pluggy==1.5.0
+pyarrow==19.0.0
+pyhdf==0.11.6
+pytest==8.3.4
+python-dateutil==2.9.0.post0
+pytz==2024.1
+pyyaml==6.0.2
+scikit-learn==1.6.1
+scipy==1.15.3
+setuptools==72.1.0
+six==1.17.0
+threadpoolctl==3.5.0
+tzdata==2025.2
+wheel==0.45.1
+xarray==2025.4.0
+xgboost==3.1.3

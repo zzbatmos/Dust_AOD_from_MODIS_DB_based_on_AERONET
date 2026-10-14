@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *.so
 .pytest_cache/
+build/
+dist/
+*.egg-info/
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
