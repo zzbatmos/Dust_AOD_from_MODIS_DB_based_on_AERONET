@@ -70,8 +70,18 @@ configuration are retained under `models/`. Membership inventories, raw
 collocations and unpublished performance tables remain private for archive
 review; the freeze does not authorize their public redistribution.
 
-Remaining: verified full-month remapping and product checks, pull request,
-numbers/figures, archive preparation and final author approval.
+All 26 product files (December 2016 through December 2017, both grids) were
+repackaged using code commit `f959c27d17c8d1ebf73889c9da6b71e50c42af04`.
+Every mapped field agrees exactly with the original sufficient statistics;
+every product passes value/count/missing invariants. The actual monthly
+product passed strict CF-1.8 (524/524). All source grids have equal valid-AOD
+and ML support; conversion explicitly verifies this before reusing AOD sums.
+Source coordinate variables are read from the parent NetCDF group, not
+subgroup dimension indexes. Product manifests and verification reports stay
+in private author storage rather than adding unpublished datasets to Git.
+
+Remaining: pull request, numbers/figures, archive preparation and final author
+approval. The local release candidate is verified, not merged or published.
 
 Do not open a release or mint a DOI automatically. PR creation will follow
 verification and a public-content audit. Archive preparation must resolve
