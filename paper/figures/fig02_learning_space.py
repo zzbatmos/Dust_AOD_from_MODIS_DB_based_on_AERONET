@@ -1,5 +1,6 @@
 """Controlled learning-space comparison, read only from the numbers registry."""
 import argparse
+import math
 from pathlib import Path
 
 import matplotlib
@@ -67,6 +68,12 @@ def make(registry_path, output, reference="experimental1020"):
     ax.set_ylim(-.7, 3.7)
     ax.set_xlim(-.08, .04)
     ax.set_xticks([-.08, -.04, 0, .04])
+    contrasts_data = [d for d in data if d["panel"] == "c"]
+    if any(d["ci_low"] < -.08 or d["ci_high"] > .04 for d in contrasts_data):
+        limit = math.ceil(max(max(abs(d["ci_low"]), abs(d["ci_high"]))
+                              for d in contrasts_data) / .04) * .04
+        ax.set_xlim(-limit, limit)
+        ax.set_xticks([-limit, 0, limit])
     ax.tick_params(axis="y", length=0)
     ax.set_xlabel("RMSE difference\nNegative favors first term")
     style.panel_label(ax, "c", x=-.05)

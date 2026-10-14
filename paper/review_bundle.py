@@ -1,0 +1,87 @@
+"""Render a reproducible partial review batch and assemble final-size PDFs.
+
+Missing numbered figures are explicitly listed; this never certifies that the
+whole manuscript figure specification has been fulfilled or visually reviewed.
+"""
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+from paper.numbers import digest
+
+
+MODULES = {
+    "1": "fig01_framework", "2": "fig02_learning_space", "4": "fig04_pixel_skill",
+    "6": "fig06_seasonal_maps", "7": "fig07_regional_comparison",
+    "S5": "figS05_learning_space_sensitivity",
+}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--registry", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--figures", nargs="+", choices=list(MODULES), default=list(MODULES))
+    args = parser.parse_args()
+    root = args.output_dir.resolve()
+    if root.is_relative_to(Path(__file__).resolve().parents[1]):
+        raise ValueError("Review bundles must be outside public worktree")
+    root.mkdir(parents=True, exist_ok=True)
+    registry_sha = digest(args.registry)
+    env = dict(os.environ, MPLCONFIGDIR="/tmp/dbdust-mpl", XDG_CACHE_HOME="/tmp/dbdust-cache")
+    for number in args.figures:
+        module = MODULES[number]
+        destination = root / ("si" if number.startswith("S") else "main")
+        print(f"Rendering {module}", flush=True)
+        subprocess.run([sys.executable, "-m", "paper.figures." + module,
+                        "--registry", str(args.registry), "--output-dir", str(destination)],
+                       check=True, env=env)
+    subprocess.run([sys.executable, "-m", "paper.tables", "--registry", str(args.registry),
+                    "--output-dir", str(root / "tables")], check=True, env=env)
+    wrapper = root / "tables/table_preview.tex"
+    wrapper.write_text("\\documentclass{article}\n\\usepackage[a4paper,margin=10mm]{geometry}\n"
+                       "\\usepackage[T1]{fontenc}\n\\usepackage{booktabs}\n\\begin{document}\n"
+                       "\\input{Table01.tex}\n\\clearpage\n\\input{Table02.tex}\n\\end{document}\n")
+    compile_result = subprocess.run(["pdflatex", "-halt-on-error", "-interaction=nonstopmode", wrapper.name],
+                                    cwd=wrapper.parent, capture_output=True, text=True)
+    (wrapper.parent / "compile_output.txt").write_text(compile_result.stdout + compile_result.stderr)
+    compile_result.check_returncode()
+    if "Overfull" in compile_result.stdout or "Font shape" in compile_result.stdout:
+        raise ValueError("Inspect table overflow/font-substitution warning")
+    captions, figures = [], []
+    for subdir, contact in (("main", "CONTACT_SHEET.pdf"), ("si", "CONTACT_SHEET_SI.pdf")):
+        folder = root / subdir
+        pdfs = sorted(folder.glob("Fig*.pdf"))
+        if pdfs:
+            subprocess.run(["pdfunite", *map(str, pdfs), str(folder / contact)], check=True)
+        for path in pdfs:
+            stem = path.name.split("_")[0]
+            provenance = json.loads((folder / (stem + "_provenance.json")).read_text())
+            if provenance["registry_sha256"] != registry_sha:
+                raise ValueError(f"Mixed registry versions: {path}")
+            caption = (folder / (stem + "_caption.md")).read_text().strip()
+            if subdir == "main" and len(caption.split()) > 80:
+                raise ValueError(f"Caption exceeds 80 words: {stem}")
+            captions.append(f"## {stem}\n\n{caption}")
+            fonts = subprocess.run(["pdffonts", str(path)], capture_output=True, text=True, check=True).stdout
+            (folder / (stem + "_fonts.txt")).write_text(fonts)
+            figures.append(dict(figure=stem, path=str(path), sha256=digest(path),
+                                caption_words=len(caption.split()), provenance=provenance))
+    if digest(args.registry) != registry_sha:
+        raise RuntimeError("Registry changed during rendering")
+    (root / "captions.md").write_text("# Draft figure captions\n\n" + "\n\n".join(captions) + "\n")
+    missing = [f"Fig{i:02}" for i in range(1, 9) if f"Fig{i:02}" not in {f["figure"] for f in figures}]
+    (root / "review_manifest.json").write_text(json.dumps({
+        "created_utc": datetime.now(timezone.utc).isoformat(), "registry_sha256": registry_sha,
+        "figures": figures, "missing_main_figures": missing,
+        "status": "Partial review batch; generated diagnostics do not replace visual inspection."
+    }, indent=2, allow_nan=False) + "\n")
+    print(f"Partial batch complete. Missing main figures: {', '.join(missing)}", flush=True)
+
+
+if __name__ == "__main__":
+    main()
