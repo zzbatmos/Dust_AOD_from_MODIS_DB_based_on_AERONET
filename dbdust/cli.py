@@ -73,6 +73,81 @@ def l3_main(argv=None):
     print(args.output)
 
 
+def _verify_monthly(ds):
+    """Check frozen monthly numerical invariants, without changing any data."""
+    names = CONFIG['outputs']['monthly']
+    if set(names) - set(ds.data_vars):
+        raise ValueError('Missing monthly variables')
+    values = {}
+    for name in names:
+        if ds[name].dims != ('time', 'lat', 'lon') or ds.sizes['time'] != 1:
+            raise ValueError(f'{name} must have monthly dimensions (time=1, lat, lon)')
+        array = ds[name].values
+        if array.dtype.kind not in 'iuf':
+            raise ValueError(f'{name} must contain real numeric values')
+        values[name] = array
+
+    counts = {}
+    for name in names:
+        if not name.startswith('n_'):
+            continue
+        array = values[name]
+        if (not np.isfinite(array).all() or (array < 0).any()
+                or (array > np.iinfo(np.int32).max).any()
+                or (array != np.floor(array)).any()):
+            raise ValueError(f'{name} must contain finite nonnegative integral int32 counts')
+        # Promote before adding branches: on-disk counts are signed int32.
+        counts[name] = array.astype(np.int64)
+    n_ml, n_valid = counts['n_ml'], counts['n_valid_aod']
+    if (n_ml > n_valid).any():
+        raise ValueError('ML count exceeds valid AOD count')
+    if (counts['n_full8'] + counts['n_noSSA5'] != n_ml).any():
+        raise ValueError('Branch count mismatch')
+
+    for name in names:
+        if name in counts:
+            continue
+        denominator = (counts[CONFIG['aggregation']['missing_fraction_denominator']]
+                       if name == 'frac_ml_missing' else n_ml)
+        supported = denominator > 0
+        array = values[name]
+        if not np.isfinite(array[supported]).all():
+            raise ValueError(f'{name} must be finite on positive-denominator support')
+        if not np.isnan(array[~supported]).all():
+            raise ValueError(f'{name} must be missing where its denominator is zero')
+        if (array[supported] < 0).any():
+            raise ValueError(f'{name} must be nonnegative')
+        if name.startswith('frac_') or name == 'dust_probability_mean':
+            if (array[supported] > 1).any():
+                raise ValueError(f'{name} must be in [0, 1]')
+
+    supported = n_ml > 0
+    for name in ('daod550_ev', 'daod550_qa2'):
+        if (values[name][supported] > values['aod550_db'][supported]).any():
+            raise ValueError(f'{name} exceeds aod550_db')
+    for name in names:
+        if name.startswith('ev_contribution_'):
+            if (values[name][supported] > values['daod550_ev'][supported]).any():
+                raise ValueError(f'{name} exceeds daod550_ev')
+
+    for name, numerator, denominator in (
+        ('frac_full8', counts['n_full8'], counts[CONFIG['aggregation']['fractions_denominator']]),
+        ('frac_ml_missing', n_valid - n_ml, counts[CONFIG['aggregation']['missing_fraction_denominator']]),
+    ):
+        positive = denominator > 0
+        expected = numerator[positive] / denominator[positive]
+        if (values[name][positive] != expected).any():
+            raise ValueError(f'{name} disagrees with its count ratio')
+
+    qa_names = ['frac_qa' + str(i) for i, _ in enumerate(CONFIG['qa']['thresholds'], start=1)]
+    for lower, higher in zip(qa_names, qa_names[1:]):
+        if (values[higher][supported] > values[lower][supported]).any():
+            raise ValueError(f'QA fractions must be nonincreasing: {higher} exceeds {lower}')
+    gate_fraction = values[qa_names[CONFIG['qa']['product_gate_index']]]
+    if (values['daod550_qa2'][supported & (gate_fraction == 0)] != 0).any():
+        raise ValueError('daod550_qa2 must be zero when no retrieval passes its QA gate')
+
+
 def verify_main(argv=None):
     parser = argparse.ArgumentParser(description='Verify artifacts and optional L3 product invariants')
     parser.add_argument('product', type=Path, nargs='?')
@@ -80,18 +155,7 @@ def verify_main(argv=None):
     predictor = EVPredictor()
     if args.product:
         with xr.open_dataset(args.product) as ds:
-            if set(CONFIG['outputs']['monthly']) - set(ds.data_vars):
-                raise ValueError('Missing monthly variables')
-            for name in ('daod550_ev', 'daod550_qa2'):
-                good = np.isfinite(ds[name])
-                if bool(((ds[name] < 0) | (ds[name] > ds.aod550_db)).where(good, False).any()):
-                    raise ValueError(f'Unphysical {name}')
-                if bool(ds[name].where(ds.n_ml == 0).notnull().any()):
-                    raise ValueError('Unsupported cells are not missing')
-            if bool((ds.n_ml > ds.n_valid_aod).any()):
-                raise ValueError('ML count exceeds valid AOD count')
-            if bool((ds.n_full8+ds.n_noSSA5 != ds.n_ml).any()):
-                raise ValueError('Branch count mismatch')
+            _verify_monthly(ds)
     print('Artifact manifest verified:', predictor.manifest_sha256)
     if args.product:
         print('Product value/count invariants passed (not a complete CF checker).')

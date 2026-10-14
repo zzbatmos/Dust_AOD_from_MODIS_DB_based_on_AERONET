@@ -37,7 +37,7 @@ difference rather than claiming identical joint sampling.
 
 ## Reproduction checks (13 October 2026, US Eastern)
 
-- Complete configured test suite: 60 passed, no skips. Includes target
+- Complete configured test suite after independent review: 238 passed, no skips. Includes target
   reconstruction, all cached collocation inputs, three raw case readers and
   golden files, product semantics and scientific-constant checks.
 - Fold-specific inference and metrics: 81 primary fold/population combinations,
@@ -55,6 +55,12 @@ difference rather than claiming identical joint sampling.
   explicit overflow rejection. Deterministic title/history metadata is included.
 - Wheel builds and loads its configuration and hash-verified models in an
   isolated environment outside the source directory.
+- Independent review added fail-closed validation: acceptance evidence must
+  match the executing package/configuration/converter; source grid coordinates
+  and dimension order must match before remapping; the standalone verifier
+  rejects nonfinite supported values, malformed counts, invalid probabilities,
+  fraction/support inconsistencies and incorrect QA ordering. No inference,
+  target or aggregation formula changed.
 
 The sample manifest ranks original ledger filenames by SHA-256 of
 `DBDust-v2-freeze-sample-20261014|` plus filename and takes the first 300 per
