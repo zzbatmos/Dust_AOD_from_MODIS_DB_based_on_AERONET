@@ -37,7 +37,8 @@ def make(registry_path, output):
                 for sparse in (False, True):
                     points = q.loc[q.sites.lt(5).eq(sparse)]
                     ax.plot(points.predicted, points.observed, marker=marker, color=color, ls="none",
-                            markerfacecolor="white" if sparse else color, markersize=3.5)
+                            markerfacecolor="white" if sparse else color, markersize=3.5,
+                            clip_on=False, zorder=3)
             ax.set(xlim=(0, 1), ylim=(0, 1), xticks=[0, .5, 1], yticks=[0, .5, 1])
             ax.set_title({"full8_common": "full8: comparison population", "noSSA5_own": "noSSA5: own population",
                           "hierarchy_own": "Hierarchy: own population"}[branch], pad=7)

@@ -14,6 +14,7 @@ KEYS = ["reference", "population", "branch", "split_id", "scheme", "repeat"]
 REFERENCES = ("experimental1020", "old675LR56")
 BRANCHES = ("full8", "noSSA5")
 COLORS = {"full8": "#0072B2", "noSSA5": "#D55E00"}
+MARKERS = {"full8": "o", "noSSA5": "s"}
 
 
 def select(registry):
@@ -74,8 +75,8 @@ def make(registry_path, output):
         for branch in BRANCHES:
             q = frames[TABLES[0]]
             q = q.loc[q.reference.eq(reference) & q.branch.eq(branch) & q.evaluation_positive_rows.gt(0)]
-            for field, marker, face in (("f_pos_mean", "o", "none"), ("f_pos_star_mean", "^", COLORS[branch])):
-                ax.scatter(q.positive_observed_mean, q[field], marker=marker, s=15, alpha=.65,
+            for field, face in (("f_pos_mean", "none"), ("f_pos_star_mean", COLORS[branch])):
+                ax.scatter(q.positive_observed_mean, q[field], marker=MARKERS[branch], s=15, alpha=.65,
                            facecolors=face, edgecolors=COLORS[branch], linewidths=.6)
         ax.set(xlim=(0, 1), ylim=(0, 1), xlabel="Held-out positive-reference mean fraction",
                ylabel="Predicted positive mean fraction", title=("Primary 1020-nm reference" if col == 0
@@ -90,16 +91,17 @@ def make(registry_path, output):
             jitter = np.linspace(-.055, .055, len(q))
             for i, coefficient in enumerate(("a", "b", "c")):
                 ax.scatter(i + (bi - .5) * .20 + jitter, q[coefficient], c=COLORS[branch],
-                           marker="o" if bi == 0 else "s", s=10, alpha=.65)
+                           marker=MARKERS[branch], s=10, alpha=.65)
         ax.set(xticks=range(3), xticklabels=["a (constant)", "b (linear)", "c (quadratic)"],
                ylim=(-coefficient_limit, coefficient_limit),
                ylabel="Saved AE-fit coefficient", title="Dust-fraction fit: a + b AE + c AE squared")
         style.panel_label(ax, "cd"[col], y=1.07)
-    branch_handles = [Line2D([], [], color=COLORS[b], lw=2,
+    branch_handles = [Line2D([], [], color=COLORS[b], marker=MARKERS[b],
+                              markerfacecolor="none", ls="none",
                               label=f"{b}: own population") for b in BRANCHES]
     smear_handles = [Line2D([], [], color="black", marker=m, markerfacecolor=f, ls="none", label=l)
                      for m, f, l in [("o", "none", "Unsmeared positive mean"),
-                                      ("^", "black", "Residual-smeared positive mean")]]
+                                      ("o", "black", "Residual-smeared positive mean")]]
     fig.legend(handles=branch_handles + smear_handles, loc="lower center", bbox_to_anchor=(.54, .02), ncol=2)
     for record in evidence:
         record["semantics"] = ("Final Stage B own-population fold artifacts; all site-CV repeats and "
@@ -110,7 +112,8 @@ def make(registry_path, output):
     (Path(output) / "FigS12_caption.md").write_text(
         "Final Stage B retransformation and AE-fit diagnostics under both AERONET references. "
         "Top: each marker is one held-out fold's positive-reference mean versus its unsmeared "
-        "(open circles) or empirical inner-OOF residual-smeared (filled triangles) positive prediction mean. "
+        "(open markers) or empirical inner-OOF residual-smeared (filled markers) positive prediction mean. "
+        "Circles denote full8 and squares noSSA5 in both rows; top-row fill denotes smearing, not branch. "
         f"The {missing} folds without positive evaluation records retain missing means in the CSV and are "
         "not plotted. Bottom: saved coefficients of a + b AE + c AE squared fitted to reference dust "
         "fraction, not fine-mode fraction. Each point is one fold; horizontal offsets only separate points. "
