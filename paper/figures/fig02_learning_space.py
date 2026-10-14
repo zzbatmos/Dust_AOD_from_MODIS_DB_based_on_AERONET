@@ -83,6 +83,8 @@ def make(registry_path, output, reference="experimental1020"):
         "practical margin. All methods use identical collocations; repeated "
         "cross-validation predictions are pooled. AER denotes AERONET; DB denotes Deep Blue."
     )
+    if reference == "old675LR56":
+        caption = "Sensitivity using the old 675-nm, 56-sr reference. " + caption
     (Path(output) / f"{stem.split('_')[0]}_caption.md").write_text(caption + "\n")
     plt.close(fig)
 

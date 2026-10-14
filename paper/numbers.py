@@ -37,6 +37,7 @@ DIMENSIONS = set("""reference target population model features scheme QA scope g
     stage branch pairing stratum estimator repeat_summary minimum hypothesis
     candidate comparator metric level variant support reference_mask period region
     component bin bin_low bin_high event site_key site Site repeat fold CV_region year lat lon wavelength
+    row_id split_id point_index threshold row_order comparison_support selected_estimator figure panel axis_max
     calibration_reserved sample month db_type algorithm aod_bin regime subset
     minimum_rows seasonal_minimum_calendar_months anomaly_minimum_years
     exploratory_below_sites expected_repeats""".split())
@@ -212,6 +213,7 @@ def main():
     parser.add_argument("--derived-dir", type=Path, help="Audited plot arrays with per-file provenance JSON")
     parser.add_argument("--extra-table", action="append", default=[], metavar="NAME=PATH",
                         help="Explicit additional existing CSV, kept separate from primary source tables")
+    parser.add_argument("--derive-claims", action="store_true", help="Include checked arithmetic with full operand provenance")
     args = parser.parse_args()
     code_root = Path(__file__).resolve().parents[1]
     output = args.output_dir.resolve()
@@ -250,6 +252,10 @@ def main():
             raise ValueError("Duplicate claim identifiers")
         payload["claims"] = check_claims(Registry(payload), requests)
         payload["claims_sources"] = {str(path.resolve()): digest(path) for path in args.claims}
+    if args.derive_claims:
+        from paper.claim_arithmetic import derive_claims
+        payload["derived_claims"] = derive_claims(Registry(payload))
+        payload["arithmetic_script_sha256"] = digest(Path(__file__).with_name("claim_arithmetic.py"))
     output.mkdir(parents=True, exist_ok=True)
     (output / "paper_numbers.json").write_text(json.dumps(payload, allow_nan=False, separators=(",", ":")) + "\n")
     lines = ["# Frozen manuscript numbers registry", "", f"Code: `{commit}`.", "",
@@ -266,9 +272,14 @@ def main():
         lines += [f"- {item['claim_id']}: {n['value']}; interval {n['interval']}; "
                   f"N={n['N']}; draft match={item['matches_at_stated_precision']}. "
                   f"Source `{n['source_file']}`; filter `{n['filter']}`."]
+    if payload.get("derived_claims"):
+        lines += ["", "## Derived comparisons", "", "Exact operands, filters, counts and caveats are retained in JSON.", ""]
+        lines += [f"- `{r['key']}`: {r['value']} {r['units']}; interval {r['interval']}; "
+                  f"equation `{r['equation']}`." for r in payload["derived_claims"]]
     (output / "paper_numbers.md").write_text("\n".join(lines) + "\n")
     print(json.dumps({"tables": len(tables), "rows": sum(t["source_rows"] for t in tables.values()),
-                      "claims": len(payload["claims"]), "output": str(output)}))
+                      "claims": len(payload["claims"]), "derived_claims": len(payload.get("derived_claims", [])),
+                      "output": str(output)}))
 
 
 if __name__ == "__main__":
