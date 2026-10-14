@@ -2,7 +2,7 @@ from PIL import Image
 import json
 import pytest
 
-from paper.audit_review_bundle import font_check, raster_check
+from paper.audit_review_bundle import font_check, raster_check, table_checks
 from paper.review_bundle import missing_supplementary, supplementary_table_modules
 
 
@@ -81,3 +81,50 @@ def test_preview_physical_size(tmp_path):
     raster_check(path, 25.4, 50.8)
     with pytest.raises(ValueError, match="dimensions"):
         raster_check(path, 95, 100)
+
+
+def test_table_receipts_registry_outputs_and_legacy_inventory(tmp_path):
+    from paper.numbers import digest
+    csv = tmp_path / "Table01.csv"
+    csv.write_text("value\n1\n")
+    tex = tmp_path / "Table01.tex"
+    tex.write_text("Table text")
+    receipt = tmp_path / "Table01_provenance.json"
+    receipt.write_text(json.dumps({"registry_sha256": "correct", "outputs": {csv.name: digest(csv)}}))
+    records, missing = table_checks(tmp_path, "correct")
+    assert len(records) == 1 and len(missing) == 9
+    assert records[0]["verified_recorded_hashes"] == 1
+    assert records[0]["inventoried_without_prior_output_hash"] == [tex.name]
+    with pytest.raises(ValueError, match="Mixed table registry"):
+        table_checks(tmp_path, "wrong")
+    csv.write_text("value\n2\n")
+    with pytest.raises(ValueError, match="changed or missing"):
+        table_checks(tmp_path, "correct")
+
+
+def test_table_receipt_cannot_escape_directory(tmp_path):
+    receipt = tmp_path / "Table01_provenance.json"
+    receipt.write_text(json.dumps({"registry_sha256": "correct", "outputs": {"../external.csv": "hash"}}))
+    with pytest.raises(ValueError, match="outside"):
+        table_checks(tmp_path, "correct")
+
+
+def test_table_receipt_requires_numerical_export(tmp_path):
+    (tmp_path / "Table01_provenance.json").write_text(json.dumps({"registry_sha256": "correct"}))
+    with pytest.raises(ValueError, match="lacks CSV or TeX"):
+        table_checks(tmp_path, "correct")
+
+
+def test_legacy_selection_csv_has_explicit_suffix(tmp_path):
+    from paper.numbers import digest
+    csv = tmp_path / "TableS08_inner_selection.csv"
+    csv.write_text("choice\nE4\n")
+    (tmp_path / "TableS08.tex").write_text("Table")
+    (tmp_path / "TableS08_provenance.json").write_text(json.dumps({
+        "registry_sha256": "correct", "csv_sha256": digest(csv)}))
+    records, _ = table_checks(tmp_path, "correct")
+    assert records[0]["verified_recorded_hashes"] == 1
+    assert csv.name in records[0]["outputs"]
+    (tmp_path / "TableS08_extra.csv").write_text("ambiguous")
+    with pytest.raises(ValueError, match="Ambiguous legacy"):
+        table_checks(tmp_path, "correct")

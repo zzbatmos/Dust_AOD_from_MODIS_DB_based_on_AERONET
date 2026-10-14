@@ -37,6 +37,42 @@ def raster_check(path, width_mm, height_mm, tiff=False):
                     width_mm=dimensions[0], height_mm=dimensions[1])
 
 
+def table_checks(folder, registry_sha):
+    """Check saved table receipts; distinguish inventoried from pre-hashed outputs."""
+    records = []
+    for receipt in sorted(Path(folder).rglob("Table*_provenance.json")):
+        data = json.loads(receipt.read_text())
+        stem = receipt.name.removesuffix("_provenance.json")
+        if data.get("registry_sha256") != registry_sha:
+            raise ValueError(f"Mixed table registry hashes: {receipt}")
+        outputs = dict(data.get("outputs", {}))
+        csvs = sorted(receipt.parent.glob(stem + "*.csv"))
+        if "csv_sha256" in data:
+            if len(csvs) != 1:
+                raise ValueError(f"Ambiguous legacy table CSV receipt: {stem}")
+            outputs[csvs[0].name] = data["csv_sha256"]
+        for name, expected in outputs.items():
+            path = (receipt.parent / name).resolve()
+            if not path.is_relative_to(receipt.parent.resolve()):
+                raise ValueError("Table output outside its directory")
+            if not path.is_file() or digest(path) != expected:
+                raise ValueError(f"Table output changed or missing: {path}")
+        tex = receipt.parent / (stem + ".tex")
+        if not csvs or not tex.is_file():
+            raise ValueError(f"Table lacks CSV or TeX: {stem}")
+        artifacts = dict(outputs)
+        unanchored = []
+        for path in [*csvs, tex]:
+            if path.name not in artifacts:
+                artifacts[path.name] = digest(path)
+                unanchored.append(path.name)
+        records.append(dict(table=stem, provenance_sha256=digest(receipt),
+                            verified_recorded_hashes=len(outputs), outputs=artifacts,
+                            inventoried_without_prior_output_hash=unanchored))
+    expected = {"Table01", "Table02", *(f"TableS{i:02}" for i in range(1, 9))}
+    return records, sorted(expected - {item["table"] for item in records})
+
+
 def audit(root):
     root = Path(root).resolve()
     manifest = json.loads((root / "review_manifest.json").read_text())
@@ -90,7 +126,9 @@ def audit(root):
             overfull.append(str(log))
     if overfull:
         raise ValueError("Table overflow reported: " + ", ".join(overfull))
+    tables, missing_tables = table_checks(root / "tables", manifest["registry_sha256"])
     result = dict(created_utc=datetime.now(timezone.utc).isoformat(), figures=records,
+                  tables=tables, missing_tables=missing_tables,
                   audit_script_sha256=digest(Path(__file__)),
                   registry_sha256=manifest["registry_sha256"], warnings=warnings,
                   missing_main_figures=manifest["missing_main_figures"],
@@ -105,4 +143,5 @@ if __name__ == "__main__":
     parser.add_argument("--bundle", type=Path, required=True)
     args = parser.parse_args()
     result = audit(args.bundle)
-    print(json.dumps(dict(figures_checked=len(result["figures"]), warnings=result["warnings"])))
+    print(json.dumps(dict(figures_checked=len(result["figures"]), tables_checked=len(result["tables"]),
+                          missing_tables=result["missing_tables"], warnings=result["warnings"])))
