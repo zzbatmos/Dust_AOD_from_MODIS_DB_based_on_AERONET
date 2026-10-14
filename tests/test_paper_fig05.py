@@ -1,4 +1,4 @@
-"""Synthetic registry-only tests for the provisional mixed-scale Figure 5."""
+"""Synthetic registry-only tests for the qualified mixed-scale Figure 5."""
 import copy
 import json
 from pathlib import Path
@@ -94,7 +94,7 @@ def test_exact_sources_filters_and_full_values(plotter, payload):
         assert source["selected_record_indices"] == selected.source_record_index.tolist()
     assert data.untouched_saved_value.eq(.123456789).all()
     assert evidence[-1]["scales"] == dict(abc="site-month", d="collocation", e="site-month")
-    assert "pending" in evidence[-1]["status"]
+    assert "approved by author" in evidence[-1]["status"]
 
 
 def test_repeats_and_annotations_never_reaggregated(plotter, payload):
@@ -206,7 +206,7 @@ def test_geometry_marker_scales_saved_endpoints_and_provisional_caption(plotter,
         assert len(e.collections) == len(plotter.STRATA) * 3
         first_interval = e.collections[0].get_segments()[0]
         assert first_interval[:, 0].tolist() == [.01, .02]
-        assert "pending" in plotter.CAPTION and "Provisional" in plotter.CAPTION
+        assert "COLLOCATION-scale" in plotter.CAPTION and "not the site-month" in plotter.CAPTION
         assert "not the site-month bias decomposition" in plotter.CAPTION
     finally:
         plotter.plt.close(fig)
@@ -240,7 +240,7 @@ def test_cli_registry_only_immutable_and_provenance(plotter, payload, tmp_path, 
     plotter.main(["--registry", str(registry), "--output-dir", str(output)])
     assert digest(registry) == before
     assert (output / "Fig05_data.csv").exists()
-    assert "pending" in (output / "Fig05_caption.md").read_text()
+    assert "not the site-month" in (output / "Fig05_caption.md").read_text()
     assert "No new aggregation" in (output / "Fig05_notes.md").read_text()
     assert "source_only" in (output / "Fig05_data.csv").read_text()
 

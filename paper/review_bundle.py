@@ -16,8 +16,9 @@ from paper.numbers import digest
 
 MODULES = {
     "1": "fig01_framework", "2": "fig02_learning_space", "3": "fig03_information_content", "4": "fig04_pixel_skill",
+    "5": "fig05_site_month",
     "6": "fig06_seasonal_maps", "7": "fig07_regional_comparison",
-    "8": "fig08_cases", "S2": "figS02_calibration", "S3": "figS03_reference_sensitivity",
+    "8": "fig08_cases", "S1": "figS01_coarse_fraction", "S2": "figS02_calibration", "S3": "figS03_reference_sensitivity",
     "S4": "figS04_collocation_ledger", "S5": "figS05_learning_space_sensitivity",
     "S6": "figS06_product_comparison", "S7": "figS07_ablation_coverage",
     "S8": "figS08_probability_calibration", "S9": "figS09_stratified_skill",

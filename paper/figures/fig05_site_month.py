@@ -1,4 +1,4 @@
-"""Provisional mixed-scale Figure 5, exclusively from saved registry records."""
+"""Author-approved mixed-scale Figure 5, exclusively from saved registry records."""
 from __future__ import annotations
 
 import argparse
@@ -36,9 +36,9 @@ COMPONENTS = {
     "subthreshold_reference_TN": ("Subthreshold", "#CC79A7", "\\\\"),
 }
 COUNTS = ["prediction_events", "sites", "repeats", "unique_rows", "unique_site_months"]
-STATUS = "Provisional author-review candidate; mixed-scale design acceptance remains pending."
+STATUS = "Explicit mixed-scale presentation approved by author on 2026-10-14."
 CAPTION = (
-    "Provisional author-review candidate; design acceptance pending. Experimental1020 hierarchy, held-out sites. "
+    "Experimental1020 hierarchy, held-out sites. "
     "(a-c) Site-month DAOD: minimum three collocations; both repeats plotted; annotations use saved "
     "repeat-specific metric means. (d) COLLOCATION-scale QA2 bias: four additive components, black total ticks; "
     "not the site-month bias decomposition. (e) Site-month bias and saved 95% site-bootstrap intervals on "
@@ -299,8 +299,7 @@ def notes(data):
             "and do not establish robust regional uncertainty. Saved CI endpoints are drawn directly, "
             "even if they do not enclose a point estimate. The monthly score and stratum tables retain "
             "their respective original core intersections; no new cross-table pairing.\n\n"
-            "Provisional mixed-scale design: explicit collocation-scale panel d requires author acceptance; "
-            "this candidate does not close that pending decision or enter an immutable review bundle. "
+            "The author approved this explicitly labeled mixed-scale presentation on 2026-10-14. "
             "No new aggregation, fits, predictions, confidence intervals or bootstrap were performed.\n")
 
 
