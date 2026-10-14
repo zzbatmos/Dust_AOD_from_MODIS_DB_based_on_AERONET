@@ -24,6 +24,7 @@ MODULES = {
     "S10": "figS10_fraction_reliability",
     "S11": "figS11_site_month_sensitivity", "S12": "figS12_retransformation",
     "S13": "figS13_all_seasonal_maps", "S14": "figS14_monthly_cycles",
+    "S15": "figS15_low_loading",
     "S16": "figS16_reference_means", "S17": "figS17_case_inputs", "S18": "figS18_temporal",
 }
 
