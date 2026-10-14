@@ -19,6 +19,7 @@ MODULES = {
     "6": "fig06_seasonal_maps", "7": "fig07_regional_comparison",
     "8": "fig08_cases", "S2": "figS02_calibration", "S5": "figS05_learning_space_sensitivity",
     "S7": "figS07_ablation_coverage", "S10": "figS10_fraction_reliability",
+    "S17": "figS17_case_inputs", "S18": "figS18_temporal",
 }
 
 
