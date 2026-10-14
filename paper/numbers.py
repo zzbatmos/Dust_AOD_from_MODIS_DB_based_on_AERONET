@@ -33,6 +33,7 @@ STAGE_C = (
     "seasonal_metrics", "background_floor", "floor_selection_audit",
     "low_loading_contributions", "reference_mask_sensitivity",
 )
+STAGE_B_SUPPORT = ("inner_selection", "E8_coefficients", "f_pos_retransformation_stage_b")
 DIMENSIONS = set("""reference target population model features scheme QA scope group A B
     stage branch pairing stratum estimator repeat_summary minimum hypothesis
     candidate comparator metric level variant support reference_mask period region
@@ -46,7 +47,9 @@ COUNTS = set("""n rows count sites unique_sites unique_rows unique_site_months
     prediction_events n_prediction_events eligible_rows evaluation_valid_rows
     train_valid_rows train_sites eligible_collocations target_valid finite_AOD440
     repeats n_calendar_months cell_months selected_rows selected_sites calibration_records
-    eligible_sites overridden_sites parent_events excluded_events collocations""".split())
+    eligible_sites overridden_sites parent_events excluded_events collocations
+    training_rows training_sites training_positive_rows training_positive_sites
+    evaluation_positive_rows qualifying_sites qualifying_cells input_rows paired_rows dropped_rows""".split())
 
 
 def digest(path: Path) -> str:
@@ -68,6 +71,8 @@ def units_for(metric, count_columns, value):
         return "degrees_east"
     if metric == "wavelength" or metric.endswith("_wavelength_nm"):
         return "nm"
+    if metric.endswith("_seconds"):
+        return "s"
     return "1" if isinstance(value, (int, float)) else None
 
 
@@ -86,6 +91,7 @@ def clean(value):
 def source_tables():
     for prefix, names in (("grouped_validation", GROUPED),
                           ("expected_value_test/stage_b", STAGE_B),
+                          ("expected_value_test/stage_b_support", STAGE_B_SUPPORT),
                           ("expected_value_test/stage_c", STAGE_C)):
         for name in names:
             yield f"{prefix}/{name}.csv"
@@ -93,6 +99,12 @@ def source_tables():
 
 
 def semantics(name):
+    if "/stage_b_support/" in name:
+        return ("Saved Stage B fold-level diagnostics and honest inner selection; "
+                "preserve reference/population/branch/split_id/scheme/repeat. "
+                "These are the Stage B nested artifacts, not earlier Stage A diagnostics. "
+                "No new calibration, coefficient fit, model choice or bootstrap. "
+                "Fold dispersion is not a confidence interval; deployment selection is separate.")
     if "/stage_b/" in name:
         return ("Preserve repeat_summary: mean_over_repeats means arithmetic mean "
                 "of repeat-specific metrics, not metrics of averaged predictions. "

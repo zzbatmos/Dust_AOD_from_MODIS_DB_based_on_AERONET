@@ -18,8 +18,10 @@ MODULES = {
     "1": "fig01_framework", "2": "fig02_learning_space", "4": "fig04_pixel_skill",
     "6": "fig06_seasonal_maps", "7": "fig07_regional_comparison",
     "8": "fig08_cases", "S2": "figS02_calibration", "S5": "figS05_learning_space_sensitivity",
-    "S7": "figS07_ablation_coverage", "S10": "figS10_fraction_reliability",
-    "S17": "figS17_case_inputs", "S18": "figS18_temporal",
+    "S7": "figS07_ablation_coverage", "S9": "figS09_stratified_skill",
+    "S10": "figS10_fraction_reliability",
+    "S12": "figS12_retransformation",
+    "S16": "figS16_reference_means", "S17": "figS17_case_inputs", "S18": "figS18_temporal",
 }
 
 

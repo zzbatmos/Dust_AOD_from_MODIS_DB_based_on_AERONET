@@ -79,4 +79,16 @@ def test_physical_units_and_counts():
     assert units_for("lat", [], 30.) == "degrees_north"
     assert units_for("lon_lower", [], -90.) == "degrees_east"
     assert units_for("rmse", [], .1) == "1"
+    assert units_for("runtime_seconds", [], .1) == "s"
+
+
+def test_stage_b_support_keeps_fold_identity_and_diagnostic_counts(tmp_path):
+    path = tmp_path / "support.csv"
+    pd.DataFrame([dict(reference="experimental1020", population="own", branch="full8",
+                       split_id="site_r0_f0", scheme="site_cv", repeat=0,
+                       evaluation_positive_rows=3, training_rows=10, f_pos_mean=.4)]).to_csv(path, index=False)
+    table = ingest(path, "expected_value_test/stage_b_support/f_pos_retransformation_stage_b")
+    assert "split_id" in table["filter_columns"]
+    assert "evaluation_positive_rows" in table["count_columns"]
+    assert "earlier Stage A" in table["semantics"]
 
