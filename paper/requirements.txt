@@ -1,0 +1,5 @@
+# Optional reporting environment; do not change the frozen inference environment.
+matplotlib==3.10.0
+cmcrameri==1.10
+colorspacious==1.1.2
+Pillow==11.3.0
