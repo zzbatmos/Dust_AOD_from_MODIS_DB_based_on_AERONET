@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 
 from paper.derive_monthly_cycles import regional_means
@@ -41,3 +42,45 @@ def test_months_have_their_own_saved_masks_not_an_annual_intersection():
     m[0, 1] = False
     second = regional_means(f, m, w, lat, lon, [-1, 3, -1, 6])
     assert first[1] == 3 and second[1] == 2 and first[0]["Eselected"] != second[0]["Eselected"]
+
+
+class RegistryStub:
+    def __init__(self):
+        from paper.derive_monthly_cycles import METHODS
+        dates = ["2016-12"] + [f"2017-{m:02d}" for m in range(1, 12)]
+        self.data = pd.DataFrame([dict(region=f"r{r}", date=d, estimator=e, mean=.1,
+                                     n=3, land_area_weight_sum=2., supported=True, sensitivity=False)
+                                  for r in range(15) for d in dates for e in METHODS])
+
+    def table(self, *args, **kwargs):
+        return self.data.copy()
+
+
+def test_plot_selector_preserves_months_and_distinct_support_counts():
+    from paper.figures.figS14_monthly_cycles import select
+    reg = RegistryStub()
+    mask = reg.data.date.eq("2016-12")
+    reg.data.loc[mask, ["n", "land_area_weight_sum"]] = 0
+    reg.data.loc[mask, "supported"] = False
+    reg.data.loc[mask, "mean"] = np.nan
+    result = select(reg)
+    assert result.loc[mask, "mean"].isna().all()
+    assert result.date.nunique() == 12
+
+
+@pytest.mark.parametrize("change,message", [("duplicate", "ambiguous"), ("missing", "Incomplete"),
+    ("count", "Unpaired"), ("value", "Invalid supported"), ("zerofill", "zero filled")])
+def test_plot_selector_refuses_inconsistent_registry(change, message):
+    from paper.figures.figS14_monthly_cycles import select
+    reg = RegistryStub()
+    if change == "duplicate": reg.data = pd.concat([reg.data, reg.data.iloc[[0]]])
+    if change == "missing": reg.data = reg.data.iloc[1:]
+    if change == "count": reg.data.loc[0, "n"] += 1
+    if change == "value": reg.data.loc[0, "mean"] = np.nan
+    if change == "zerofill":
+        mask = reg.data.date.eq("2016-12") & reg.data.region.eq("r0")
+        reg.data.loc[mask, ["n", "land_area_weight_sum"]] = 0
+        reg.data.loc[mask, "supported"] = False
+        reg.data.loc[mask, "mean"] = 0
+    with pytest.raises(ValueError, match=message):
+        select(reg)
