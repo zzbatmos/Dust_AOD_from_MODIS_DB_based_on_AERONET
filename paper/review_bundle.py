@@ -36,13 +36,21 @@ def missing_supplementary(stems):
     return [name for name, pages in required.items() if not pages.issubset(found)]
 
 
+def supplementary_table_modules(table_keys):
+    """Retain older snapshots; add the site inventory only when it is registered."""
+    modules = ["paper.supplement_tables", "paper.selection_table", "paper.configuration_tables"]
+    if "derived/site_inventory_table" in table_keys:
+        modules.append("paper.site_inventory_table")
+    return modules
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--figures", nargs="+", choices=list(MODULES), default=["1", "2", "4", "6", "7", "S5"])
     parser.add_argument("--image-dir", type=Path, help="Verified GIBS context cache; required for Figure 8")
-    parser.add_argument("--supplement-tables", action="store_true", help="Export and compile available SI tables S2-S8")
+    parser.add_argument("--supplement-tables", action="store_true", help="Export and compile available SI tables, including S1 when registered")
     parser.add_argument("--assemble-only", action="store_true", help="Check existing figure provenance and rebuild contacts/manifest without rerendering")
     args = parser.parse_args()
     if args.assemble_only:
@@ -79,7 +87,8 @@ def main():
         if "Overfull" in compile_result.stdout or "Font shape" in compile_result.stdout:
             raise ValueError("Inspect table overflow/font-substitution warning")
     if args.supplement_tables and not args.assemble_only:
-        for module in ("paper.supplement_tables", "paper.selection_table", "paper.configuration_tables"):
+        table_keys = json.loads(args.registry.read_text())["tables"].keys()
+        for module in supplementary_table_modules(table_keys):
             subprocess.run([sys.executable, "-m", module, "--registry", str(args.registry),
                             "--output-dir", str(root / "tables" / "supplement"), "--compile"],
                            check=True, env=env)

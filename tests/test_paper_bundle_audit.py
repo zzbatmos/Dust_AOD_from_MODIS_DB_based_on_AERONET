@@ -3,7 +3,14 @@ import json
 import pytest
 
 from paper.audit_review_bundle import font_check, raster_check
-from paper.review_bundle import missing_supplementary
+from paper.review_bundle import missing_supplementary, supplementary_table_modules
+
+
+def test_site_inventory_is_included_only_when_registered():
+    original = ["paper.supplement_tables", "paper.selection_table", "paper.configuration_tables"]
+    assert supplementary_table_modules([]) == original
+    assert supplementary_table_modules(["derived/site_overview"]) == original
+    assert supplementary_table_modules(["derived/site_inventory_table"]) == original + ["paper.site_inventory_table"]
 
 
 def test_supplement_requires_both_seasonal_pages():
