@@ -33,7 +33,8 @@ def raster_check(path, width_mm, height_mm, tiff=False):
             raise ValueError(f"Raster physical dimensions disagree: {path}")
         if tiff and (im.mode != "RGB" or im.tag_v2.get(259) != 5):
             raise ValueError(f"TIFF must be RGB with LZW compression: {path}")
-        return dict(pixels=list(im.size), dpi=list(dpi), mode=im.mode, width_mm=dimensions[0], height_mm=dimensions[1])
+        return dict(pixels=list(im.size), dpi=[float(v) for v in dpi], mode=im.mode,
+                    width_mm=dimensions[0], height_mm=dimensions[1])
 
 
 def audit(root):
@@ -90,6 +91,7 @@ def audit(root):
     if overfull:
         raise ValueError("Table overflow reported: " + ", ".join(overfull))
     result = dict(created_utc=datetime.now(timezone.utc).isoformat(), figures=records,
+                  audit_script_sha256=digest(Path(__file__)),
                   registry_sha256=manifest["registry_sha256"], warnings=warnings,
                   missing_main_figures=manifest["missing_main_figures"],
                   missing_supplementary_figures=manifest.get("missing_supplementary_figures"),

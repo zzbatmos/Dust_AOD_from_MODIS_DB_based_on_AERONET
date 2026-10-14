@@ -1,4 +1,5 @@
 from PIL import Image
+import json
 import pytest
 
 from paper.audit_review_bundle import font_check, raster_check
@@ -21,6 +22,7 @@ def test_tiff_resolution_size_mode_and_compression(tmp_path):
     image.save(path, compression="tiff_lzw", dpi=(600, 600))
     result = raster_check(path, 25.4, 50.8, tiff=True)
     assert result["mode"] == "RGB"
+    json.dumps(result, allow_nan=False)
     image.save(path, dpi=(600, 600))
     with pytest.raises(ValueError, match="LZW"):
         raster_check(path, 25.4, 50.8, tiff=True)
