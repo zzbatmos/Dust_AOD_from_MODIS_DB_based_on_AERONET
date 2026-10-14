@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dbdust"
+version = "2.0.0"
+description = "Frozen retrieval-space dust optical depth estimation from MODIS Deep Blue"
+requires-python = ">=3.11"
+dependencies = ["numpy", "pandas", "scipy", "xgboost", "PyYAML", "threadpoolctl", "xarray", "netCDF4", "pyhdf"]
+
+[project.optional-dependencies]
+test = ["pytest", "pyarrow"]
+
+[project.scripts]
+dbdust-apply = "dbdust.cli:apply_main"
+dbdust-l3 = "dbdust.cli:l3_main"
+dbdust-verify = "dbdust.cli:verify_main"
+
+[tool.setuptools]
+packages = ["dbdust", "dbdust.configs", "dbdust.models"]
+
+[tool.setuptools.package-dir]
+"dbdust.configs" = "configs"
+"dbdust.models" = "models"
+
+[tool.setuptools.package-data]
+"dbdust.configs" = ["*.yaml"]
+"dbdust.models" = ["v2.0.0/MANIFEST.sha256", "v2.0.0/*/*.json", "v2.0.0/*/*.ubj", "v2.0.0/*/*.npz"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

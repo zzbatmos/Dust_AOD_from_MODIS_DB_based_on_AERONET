@@ -1,0 +1,81 @@
+version: 2.0.0
+reference:
+  name: experimental1020
+  wavelength_nm: 1020
+  nondust_pldr: 0.02
+  dust_pldr: 0.30
+  dust_lidar_ratio_sr: 47.308
+  dust_angstrom_exponent: 0.06
+  output_wavelength_nm: 550
+  interpolation_wavelengths_nm: [440, 675]
+  clip_backscatter_before_lidar_conversion: true
+  dust_label_threshold: 0.2
+  logit_epsilon: 0.0001
+  calibration_hash_prefix: 'grouped_validation_v2_calibration|'
+  calibration_site_fraction: 0.2
+  calibration_year_before: 2010
+  calibration_backscatter_minimum: 0.9
+  calibration_lidar_range_sr: [10, 150]
+inputs:
+  collection: '061'
+  aod550: Deep_Blue_Aerosol_Optical_Depth_550_Land
+  spectral_aod: Deep_Blue_Spectral_Aerosol_Optical_Depth_Land
+  ssa: Deep_Blue_Spectral_Single_Scattering_Albedo_Land
+  ae: Deep_Blue_Angstrom_Exponent_Land
+  qa: Quality_Assurance_Land
+  latitude: Latitude
+  longitude: Longitude
+  spectral_wavelengths_nm: [412, 470, 660]
+  qa_byte_index: 4
+  qa_byte_count: 6
+  aerosol_type_shift: 3
+  aerosol_type_mask: 3
+  latitude_bounds: [-90, 90]
+  longitude_bounds: [-180, 180]
+  latitude_upper_exclusive: true
+  additional_confidence_screen: false
+  minimum_aod: 0
+  ssa_bounds: [0, 1]
+branches:
+  full8:
+    code: 1
+    features: [DB_AOD550, DB_AOD412, DB_AOD470, DB_AOD660, DB_AE, DB_SSA412, DB_SSA470, DB_SSA660]
+    selected: E3c
+  noSSA5:
+    code: 2
+    features: [DB_AOD550, DB_AOD412, DB_AOD470, DB_AOD660, DB_AE]
+    selected: E4
+qa:
+  thresholds: [0.4, 0.6, 0.7]
+  product_gate_index: 1
+  missing_tier: -1
+diagnostics:
+  low_aod_threshold: 0.2
+  low_probability_threshold: 0.3
+grids:
+  1x1: [1, 1]
+  2x5: [2, 5]
+aggregation:
+  weighting: supported_retrieval_count
+  fractions_denominator: n_ml
+  missing_fraction_denominator: n_valid_aod
+baselines:
+  li_ginoux_coefficients: [0.051, 0.336, 0.085]
+  fmf_maximum: 0.7
+  screened_ssa_order: [DB_SSA412, DB_SSA470]
+runtime:
+  n_jobs: 2
+  batch_size: 4096
+  smear_query_chunk: 256
+  smear_residual_chunk: 4096
+artifacts:
+  root: models/v2.0.0
+  manifest: MANIFEST.sha256
+  manifest_sha256: 70bb03adcf5d5ab8bb79446895d4d49ceb331500a10e41c74a869f936a6b109c
+  branch_files: [classifier.ubj, positive_fraction.ubj, direct_fraction.ubj, pair.json, postprocessor.npz, smear_curve.npz]
+outputs:
+  units: '1'
+  missing_float: NaN
+  product_prefix: DBDust_v2.0.0_Aqua_L3M
+  pixel: [branch, dust_probability, qa_tier, dust_fraction_conditional, daod550_qa2, daod550_ev, aod550_db, db_aerosol_type]
+  monthly: [daod550_ev, daod550_qa2, aod550_db, n_valid_aod, n_ml, n_full8, n_noSSA5, frac_full8, frac_ml_missing, dust_probability_mean, frac_qa1, frac_qa2, frac_qa3, ev_contribution_aod_lt_0p2, ev_contribution_p_lt_0p3]

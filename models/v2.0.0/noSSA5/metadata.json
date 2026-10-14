@@ -1,0 +1,28 @@
+{
+  "reference": "experimental1020",
+  "branch": "noSSA5",
+  "feature_names": [
+    "DB_AOD550",
+    "DB_AOD412",
+    "DB_AOD470",
+    "DB_AOD660",
+    "DB_AE"
+  ],
+  "selected": "E4",
+  "config": {
+    "n_estimators": 192,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "min_child_weight": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "tree_method": "hist",
+    "n_jobs": 2,
+    "random_state": 20261012
+  },
+  "training_rows": 7459,
+  "training_row_sha256": "cbe9cfead627e1a8429b0e7742b1c7186323681bc688de5af2fc8c2f27164cdc",
+  "source_rows_sha256": "4be47b3c9048222b5a7d531aa78722956f31b2e4f22c9b71be9538fcd24aabb6",
+  "source_metadata_sha256": "85395c2fc677d3d22d02aa7208f4b01de2b7022415f54a08a623aacb32b38500",
+  "source_complete_sha256": "1bbf84c26cf52240354c838fa212cf40a46f7b1099a9f957806a7e9fede1d776"
+}

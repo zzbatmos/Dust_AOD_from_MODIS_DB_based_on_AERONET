@@ -1,5 +1,21 @@
 # Dust AOD From MODIS Deep Blue Based on AERONET
 
+## Versions
+
+`v1.0.0` preserves the submitted-method scripts. `v2.0.0` is a release candidate
+that packages the revised reference, full8/noSSA5 input hierarchy and an
+expected-value DAOD field for averaging, alongside raw-probability QA products.
+It does not refit models during inference. See [the algorithm](docs/v2/ALGORITHM.md),
+[model card](docs/v2/MODEL_CARD.md) and [freeze status](docs/v2/FREEZE_REPORT.md).
+The older workflow description below is retained for v1 provenance; coarse-mode
+AOD comparison alone is not independent dust validation.
+
+Install the pinned environment with `pip install -r requirements-lock.txt`,
+then `pip install --no-deps .`. Run `python -m pytest` for local unit tests.
+Private reproduction tests require `DBDUST_VALIDATION_ROOT` pointing to the
+existing revision validation artifacts; tests clearly skip if those are absent.
+Do not interpret such a skip as release acceptance.
+
 ## Overview
 
 This repository develops a dust aerosol optical depth (dust AOD) retrieval

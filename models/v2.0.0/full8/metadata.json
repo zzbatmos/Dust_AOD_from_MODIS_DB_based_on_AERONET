@@ -1,0 +1,31 @@
+{
+  "reference": "experimental1020",
+  "branch": "full8",
+  "feature_names": [
+    "DB_AOD550",
+    "DB_AOD412",
+    "DB_AOD470",
+    "DB_AOD660",
+    "DB_AE",
+    "DB_SSA412",
+    "DB_SSA470",
+    "DB_SSA660"
+  ],
+  "selected": "E3c",
+  "config": {
+    "n_estimators": 192,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "min_child_weight": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "tree_method": "hist",
+    "n_jobs": 2,
+    "random_state": 20261012
+  },
+  "training_rows": 3673,
+  "training_row_sha256": "7ca22c9990d3efb61f4693d5e6bcd36cfa4e75af73f5c6735066fa2e5cb6ebc6",
+  "source_rows_sha256": "4be47b3c9048222b5a7d531aa78722956f31b2e4f22c9b71be9538fcd24aabb6",
+  "source_metadata_sha256": "8e7d19488d43f563926ca8f4ce001faa39923aea566b2b9a9a3684e1c6973fab",
+  "source_complete_sha256": "af8b3cfd918274bfe2eae178279faa99588a503ce2d2a17934d92bf81ce3e2c6"
+}

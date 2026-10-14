@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "Release candidate: cite the approved paper and archive when available; no v2 DOI is assigned yet."
+title: "DBDust: Retrieval-space dust optical depth estimation from MODIS Deep Blue"
+version: 2.0.0
+type: software
+authors:
+  - family-names: Zhang
+    given-names: Zhibo
+  - family-names: Shi
+    given-names: Yingxi
+  - family-names: Song
+    given-names: QianQian
+  - family-names: Yu
+    given-names: Hongbin
+  - family-names: Wang
+    given-names: Ronghao
+  - family-names: Zheng
+    given-names: Jianyu
+repository-code: "https://github.com/zzbatmos/Dust_AOD_from_MODIS_DB_based_on_AERONET"
