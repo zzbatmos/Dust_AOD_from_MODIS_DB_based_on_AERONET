@@ -1,6 +1,7 @@
 # DBDust 2.0.0 model card
 
-**Status:** release candidate under reproduction testing; not a published release.
+**Status:** release candidate with reproduction checks complete; not a published release.
+See `FREEZE_REPORT.md` for the verified executable commit and scope of those checks.
 The authors must approve merge, tag and archive publication separately.
 
 Use raw probability and QA tiers for event screening. Use the expected-value

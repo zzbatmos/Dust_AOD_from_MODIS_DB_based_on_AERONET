@@ -89,9 +89,16 @@ Source coordinate variables are read from the parent NetCDF group, not
 subgroup dimension indexes. Product manifests and verification reports stay
 in private author storage rather than adding unpublished datasets to Git.
 
-Remaining: pull request, numbers/figures, archive preparation and final author
-approval. The local release candidate is verified, not merged or published.
+## Handoff status (14 October 2026, US Eastern)
 
-Do not open a release or mint a DOI automatically. PR creation will follow
-verification and a public-content audit. Archive preparation must resolve
-third-party data redistribution and confirm author metadata.
+Release-candidate [pull request #1](https://github.com/zzbatmos/Dust_AOD_from_MODIS_DB_based_on_AERONET/pull/1)
+is open. It is not merged, tagged or published. Subsequent reporting work on
+`paper/resubmission-v2` does not change the verified product-generating commit
+listed above. Numbers and figure delivery are tracked in private author storage.
+
+Remaining gates are final author review and archive preparation. A linked
+Zenodo draft and DOI reservation are authorized if authenticated editing access
+is available; neither has been completed. This is not publication approval.
+Archive preparation must resolve exact third-party data scope, attribution,
+component licenses and author metadata. Do not merge, tag, create a release
+or publish the archive without explicit author approval.
