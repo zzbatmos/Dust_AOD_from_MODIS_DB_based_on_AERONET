@@ -3,6 +3,15 @@ import json
 import pytest
 
 from paper.audit_review_bundle import font_check, raster_check
+from paper.review_bundle import missing_supplementary
+
+
+def test_supplement_requires_both_seasonal_pages():
+    complete = {f"FigS{i:02}" for i in range(1, 19)} - {"FigS13"}
+    assert missing_supplementary(complete) == ["FigS13"]
+    assert missing_supplementary(complete | {"FigS13a"}) == ["FigS13"]
+    assert missing_supplementary(complete | {"FigS13a", "FigS13b"}) == []
+    assert missing_supplementary(complete | {"FigS13"}) == ["FigS13"]
 
 
 def test_true_type_embedded_font_passes():

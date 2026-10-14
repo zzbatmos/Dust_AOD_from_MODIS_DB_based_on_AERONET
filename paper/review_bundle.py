@@ -18,12 +18,22 @@ MODULES = {
     "1": "fig01_framework", "2": "fig02_learning_space", "4": "fig04_pixel_skill",
     "6": "fig06_seasonal_maps", "7": "fig07_regional_comparison",
     "8": "fig08_cases", "S2": "figS02_calibration", "S3": "figS03_reference_sensitivity",
-    "S5": "figS05_learning_space_sensitivity",
-    "S7": "figS07_ablation_coverage", "S9": "figS09_stratified_skill",
+    "S4": "figS04_collocation_ledger", "S5": "figS05_learning_space_sensitivity",
+    "S6": "figS06_product_comparison", "S7": "figS07_ablation_coverage",
+    "S8": "figS08_probability_calibration", "S9": "figS09_stratified_skill",
     "S10": "figS10_fraction_reliability",
-    "S12": "figS12_retransformation",
+    "S11": "figS11_site_month_sensitivity", "S12": "figS12_retransformation",
+    "S13": "figS13_all_seasonal_maps", "S14": "figS14_monthly_cycles",
     "S16": "figS16_reference_means", "S17": "figS17_case_inputs", "S18": "figS18_temporal",
 }
+
+
+def missing_supplementary(stems):
+    """Multi-page supplements require every named page, not just a prefix match."""
+    found = set(stems)
+    required = {f"FigS{i:02}": {f"FigS{i:02}"} for i in range(1, 19)}
+    required["FigS13"] = {"FigS13a", "FigS13b"}
+    return [name for name, pages in required.items() if not pages.issubset(found)]
 
 
 def main():
@@ -32,7 +42,7 @@ def main():
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--figures", nargs="+", choices=list(MODULES), default=["1", "2", "4", "6", "7", "S5"])
     parser.add_argument("--image-dir", type=Path, help="Verified GIBS context cache; required for Figure 8")
-    parser.add_argument("--supplement-tables", action="store_true", help="Export and compile available SI tables S2-S5 and S8")
+    parser.add_argument("--supplement-tables", action="store_true", help="Export and compile available SI tables S2-S8")
     args = parser.parse_args()
     if "8" in args.figures and args.image_dir is None:
         parser.error("Figure 8 requires --image-dir")
@@ -65,7 +75,7 @@ def main():
     if "Overfull" in compile_result.stdout or "Font shape" in compile_result.stdout:
         raise ValueError("Inspect table overflow/font-substitution warning")
     if args.supplement_tables:
-        for module in ("paper.supplement_tables", "paper.selection_table"):
+        for module in ("paper.supplement_tables", "paper.selection_table", "paper.configuration_tables"):
             subprocess.run([sys.executable, "-m", module, "--registry", str(args.registry),
                             "--output-dir", str(root / "tables" / "supplement"), "--compile"],
                            check=True, env=env)
@@ -92,8 +102,7 @@ def main():
         raise RuntimeError("Registry changed during rendering")
     (root / "captions.md").write_text("# Draft figure captions\n\n" + "\n\n".join(captions) + "\n")
     missing = [f"Fig{i:02}" for i in range(1, 9) if f"Fig{i:02}" not in {f["figure"] for f in figures}]
-    missing_si = [f"FigS{i:02}" for i in range(1, 19)
-                  if f"FigS{i:02}" not in {f["figure"] for f in figures}]
+    missing_si = missing_supplementary(f["figure"] for f in figures)
     (root / "review_manifest.json").write_text(json.dumps({
         "created_utc": datetime.now(timezone.utc).isoformat(), "registry_sha256": registry_sha,
         "figures": figures, "missing_main_figures": missing,
