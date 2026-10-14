@@ -234,14 +234,22 @@ def test_extraction_and_render_artifacts_hashes_and_immutable_inputs(tmp_path, m
     canonical.write_text(json.dumps(registry.payload))
     canonical_hash = digest(canonical)
     assert canonical_hash != sidecar["registry_sha256"]
-    # Shared export invokes git; this bounded implementation must not call it.
+    # The custom renderer stays registry-native; only a read-only commit lookup is allowed.
     monkeypatch.setattr(figure.style, "export", lambda *a, **kw: pytest.fail("Shared git-export invoked"))
+    git_reads = []
+    def read_commit(command, **kwargs):
+        assert command == ["git", "rev-parse", "HEAD"]
+        assert kwargs["text"] is True
+        git_reads.append(command)
+        return "a" * 40 + "\n"
+    monkeypatch.setattr(figure.subprocess, "check_output", read_commit)
     monkeypatch.setattr(pd, "read_csv", lambda *a, **kw: pytest.fail("Renderer opened external CSV"))
     output = tmp_path / "figures"
     provenance = figure.make(canonical, output)
     assert provenance["counts"] == {"plotted_pairs": 4, "plotted_strata": 3}
     assert provenance["visual_qa"]["canvas_bounds_pass"]
-    assert provenance["code_commit"] is None
+    assert provenance["code_commit"] == "a" * 40
+    assert len(git_reads) == 1
     assert provenance["registry_sha256"] == canonical_hash
     assert provenance["derivation"] == sidecar
     assert provenance["paired_table"]["source_sha256"] == digest(pairs_path)
