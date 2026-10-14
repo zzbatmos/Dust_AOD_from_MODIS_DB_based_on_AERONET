@@ -38,13 +38,15 @@ DIMENSIONS = set("""reference target population model features scheme QA scope g
     candidate comparator metric level variant support reference_mask period region
     component bin bin_low bin_high event site_key site Site repeat fold CV_region year lat lon wavelength
     row_id split_id point_index threshold row_order comparison_support selected_estimator figure panel axis_max
+    case pixel_index swath_row swath_col role source_record_index date granule
     calibration_reserved sample month db_type algorithm aod_bin regime subset
     minimum_rows seasonal_minimum_calendar_months anomaly_minimum_years
     exploratory_below_sites expected_repeats""".split())
 COUNTS = set("""n rows count sites unique_sites unique_rows unique_site_months
     prediction_events n_prediction_events eligible_rows evaluation_valid_rows
     train_valid_rows train_sites eligible_collocations target_valid finite_AOD440
-    repeats n_calendar_months cell_months""".split())
+    repeats n_calendar_months cell_months selected_rows selected_sites calibration_records
+    eligible_sites overridden_sites parent_events excluded_events collocations""".split())
 
 
 def digest(path: Path) -> str:
@@ -53,6 +55,20 @@ def digest(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             h.update(block)
     return h.hexdigest()
+
+
+def units_for(metric, count_columns, value):
+    if metric in count_columns:
+        return "count"
+    if metric.endswith("_sr") or metric.startswith("Lidar_Ratio["):
+        return "sr"
+    if metric in ("lat", "lat_lower", "lat_upper"):
+        return "degrees_north"
+    if metric in ("lon", "lon_lower", "lon_upper"):
+        return "degrees_east"
+    if metric == "wavelength" or metric.endswith("_wavelength_nm"):
+        return "nm"
+    return "1" if isinstance(value, (int, float)) else None
 
 
 def clean(value):
@@ -175,8 +191,7 @@ class Registry:
             "interval_type": "95% site bootstrap" if interval is not None else None,
             "interval_source": interval_source,
             "N": {k: row[k] for k in table["count_columns"]},
-            "units": "count" if metric in table["count_columns"] else
-                     ("1" if isinstance(row[metric], (int, float)) else None),
+            "units": units_for(metric, table["count_columns"], row[metric]),
             "reference": row.get("reference", row.get("target")),
             "scheme": row.get("scheme"),
             "support": {k: row[k] for k in ("population", "branch", "pairing", "support",

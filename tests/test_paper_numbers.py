@@ -72,3 +72,11 @@ def test_monthly_multiplies_before_averaging_and_keeps_repeats():
     assert not (result.E1_daod == result.E1 * 2).any()
     with pytest.raises(ValueError, match="Duplicate"):
         monthly(pd.DataFrame(rows + [rows[0]]))
+def test_physical_units_and_counts():
+    from paper.numbers import units_for
+    assert units_for("Sd_sr", [], 47.308) == "sr"
+    assert units_for("selected_rows", ["selected_rows"], 3998) == "count"
+    assert units_for("lat", [], 30.) == "degrees_north"
+    assert units_for("lon_lower", [], -90.) == "degrees_east"
+    assert units_for("rmse", [], .1) == "1"
+

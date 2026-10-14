@@ -5,7 +5,9 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 import cartopy.crs as ccrs
+from cartopy.mpl.ticker import LongitudeFormatter
 import numpy as np
 import pandas as pd
 
@@ -42,6 +44,8 @@ def make(registry_path, output):
     grid.top_labels = grid.right_labels = grid.geo_labels = False
     grid.xlabel_style = grid.ylabel_style = {"size": 6.5}
     grid.rotate_labels = False
+    longitude = LongitudeFormatter()
+    grid.xformatter = FuncFormatter(lambda value, position: longitude(value) if value % 60 == 0 else "")
     style.panel_label(geo, "b", x=-.06)
     data = pd.concat([records.assign(panel="a", record_type="selected_record"),
                       sites.assign(panel="b", record_type="calibration_site"),

@@ -17,7 +17,8 @@ from paper.numbers import digest
 MODULES = {
     "1": "fig01_framework", "2": "fig02_learning_space", "4": "fig04_pixel_skill",
     "6": "fig06_seasonal_maps", "7": "fig07_regional_comparison",
-    "S5": "figS05_learning_space_sensitivity",
+    "8": "fig08_cases", "S2": "figS02_calibration", "S5": "figS05_learning_space_sensitivity",
+    "S7": "figS07_ablation_coverage", "S10": "figS10_fraction_reliability",
 }
 
 
@@ -25,8 +26,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--figures", nargs="+", choices=list(MODULES), default=list(MODULES))
+    parser.add_argument("--figures", nargs="+", choices=list(MODULES), default=["1", "2", "4", "6", "7", "S5"])
+    parser.add_argument("--image-dir", type=Path, help="Verified GIBS context cache; required for Figure 8")
     args = parser.parse_args()
+    if "8" in args.figures and args.image_dir is None:
+        parser.error("Figure 8 requires --image-dir")
     root = args.output_dir.resolve()
     if root.is_relative_to(Path(__file__).resolve().parents[1]):
         raise ValueError("Review bundles must be outside public worktree")
@@ -37,8 +41,11 @@ def main():
         module = MODULES[number]
         destination = root / ("si" if number.startswith("S") else "main")
         print(f"Rendering {module}", flush=True)
-        subprocess.run([sys.executable, "-m", "paper.figures." + module,
-                        "--registry", str(args.registry), "--output-dir", str(destination)],
+        command = [sys.executable, "-m", "paper.figures." + module,
+                   "--registry", str(args.registry), "--output-dir", str(destination)]
+        if number == "8":
+            command += ["--image-dir", str(args.image_dir)]
+        subprocess.run(command,
                        check=True, env=env)
     subprocess.run([sys.executable, "-m", "paper.tables", "--registry", str(args.registry),
                     "--output-dir", str(root / "tables")], check=True, env=env)
