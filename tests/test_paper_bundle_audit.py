@@ -13,6 +13,16 @@ def test_site_inventory_is_included_only_when_registered():
     assert supplementary_table_modules(["derived/site_inventory_table"]) == original + ["paper.site_inventory_table"]
 
 
+def test_figure3_requires_explicit_pilot_inventory(tmp_path, monkeypatch):
+    import sys
+    from paper import review_bundle
+    monkeypatch.setattr(sys, "argv", ["bundle", "--registry", str(tmp_path / "registry.json"),
+                                     "--output-dir", str(tmp_path / "bundle"), "--figures", "3"])
+    with pytest.raises(SystemExit) as error:
+        review_bundle.main()
+    assert error.value.code == 2
+
+
 def test_supplement_requires_both_seasonal_pages():
     complete = {f"FigS{i:02}" for i in range(1, 19)} - {"FigS13"}
     assert missing_supplementary(complete) == ["FigS13"]

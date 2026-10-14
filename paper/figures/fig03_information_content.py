@@ -1,4 +1,4 @@
-"""Qualified Figure 3 review candidate; saved data only, no new uncertainty fits."""
+"""Author-approved qualified Figure 3; saved data only, no new uncertainty fits."""
 from __future__ import annotations
 
 import argparse
@@ -25,7 +25,7 @@ CAPTION = (
     "(c) Common-row QA2 ablation; vertical bars are saved 95% site-bootstrap intervals; "
     "AUC intervals are unavailable. Grey baselines show RMSE only. "
     "(d) Fixed noSSA5 E4 minus E8 RMSE, with saved intervals and practical margin; "
-    "not nested Eselected or an equivalence test. Presentation deviations await author acceptance.\n"
+    "not nested Eselected or an equivalence test. Panels (a,b) have different temporal support.\n"
 )
 
 
@@ -177,7 +177,7 @@ def make(registry_path, output, pilot_inventory):
     frames, evidence = select(Registry.read(registry_path), pd.read_csv(pilot_inventory))
     geography, geography_sources = local_geography()
     evidence.append(dict(pilot_inventory=str(pilot_inventory.resolve()), sha256=inventory_sha,
-                         geography_sources=geography_sources, status="Review candidate; presentation acceptance pending"))
+                         geography_sources=geography_sources, status="Qualified presentation approved by author on 2026-10-14"))
     fig = build(frames, geography)
     try:
         check_layout(fig)
@@ -188,8 +188,9 @@ def make(registry_path, output, pilot_inventory):
             registry_path, evidence, __file__, raster=True)
         (Path(output) / "Fig03_caption.md").write_text(CAPTION)
         (Path(output) / "Fig03_review_notes.md").write_text(
-            "# Figure 3 review candidate\n\nAuthor acceptance remains pending for the pilot/annual temporal distinction and omitted "
-            "horizontal AUC intervals. No new bootstrap was run. Panel c uses 3,673 unique collocations at 231 sites, "
+            "# Figure 3 presentation notes\n\nThe author approved the qualified presentation on 2026-10-14: the pilot/annual temporal "
+            "distinction, omitted horizontal AUC intervals, and fixed-E4 comparison. No new bootstrap was run. "
+            "Panel c uses 3,673 unique collocations at 231 sites, "
             "with pooled held-out prediction events across saved repeats. Baselines DB/LG/0 are the fitted DB-type "
             "conditional estimator, screened LG25 and zero, not three probability models.\n\nPanel d is the fixed "
             "E4 form evaluated out of fold, not nested Eselected. Saved contrasts use the noSSA5 own population; "

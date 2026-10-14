@@ -84,4 +84,4 @@ def test_caption_keeps_review_and_uncertainty_qualifications():
     assert len(CAPTION.split()) <= 80
     assert "AUC intervals are unavailable" in CAPTION
     assert "not nested Eselected" in CAPTION
-    assert "await author acceptance" in CAPTION
+    assert "different temporal support" in CAPTION

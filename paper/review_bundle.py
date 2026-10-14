@@ -15,7 +15,7 @@ from paper.numbers import digest
 
 
 MODULES = {
-    "1": "fig01_framework", "2": "fig02_learning_space", "4": "fig04_pixel_skill",
+    "1": "fig01_framework", "2": "fig02_learning_space", "3": "fig03_information_content", "4": "fig04_pixel_skill",
     "6": "fig06_seasonal_maps", "7": "fig07_regional_comparison",
     "8": "fig08_cases", "S2": "figS02_calibration", "S3": "figS03_reference_sensitivity",
     "S4": "figS04_collocation_ledger", "S5": "figS05_learning_space_sensitivity",
@@ -51,6 +51,7 @@ def main():
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--figures", nargs="+", choices=list(MODULES), default=["1", "2", "4", "6", "7", "S5"])
     parser.add_argument("--image-dir", type=Path, help="Verified GIBS context cache; required for Figure 8")
+    parser.add_argument("--pilot-inventory", type=Path, help="Completed August 29 coverage inventory; required for Figure 3")
     parser.add_argument("--supplement-tables", action="store_true", help="Export and compile available SI tables, including S1 when registered")
     parser.add_argument("--assemble-only", action="store_true", help="Check existing figure provenance and rebuild contacts/manifest without rerendering")
     args = parser.parse_args()
@@ -58,6 +59,8 @@ def main():
         args.figures = []
     if "8" in args.figures and args.image_dir is None:
         parser.error("Figure 8 requires --image-dir")
+    if "3" in args.figures and args.pilot_inventory is None:
+        parser.error("Figure 3 requires --pilot-inventory")
     root = args.output_dir.resolve()
     if root.is_relative_to(Path(__file__).resolve().parents[1]):
         raise ValueError("Review bundles must be outside public worktree")
@@ -72,6 +75,8 @@ def main():
                    "--registry", str(args.registry), "--output-dir", str(destination)]
         if number == "8":
             command += ["--image-dir", str(args.image_dir)]
+        if number == "3":
+            command += ["--pilot-inventory", str(args.pilot_inventory)]
         subprocess.run(command,
                        check=True, env=env)
     if not args.assemble_only:
