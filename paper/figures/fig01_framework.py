@@ -70,12 +70,14 @@ def make(registry_path, output):
     grid.rotate_labels = False
     style.panel_label(ax, "b", x=-.04, y=1.02)
     regions = sorted(evaluated.region.unique())
-    markers = ["o", "s", "D", "^", "v", "p", "h", "X", "P"]
+    markers = ["o", "s", "D", "^", "v", "p", "h", "X", "P", "<", ">", "d", "H", "*", "8", "x", "+"]
+    if len(regions) > len(markers):
+        raise ValueError("Add distinguishable region markers rather than silently recycling them")
     colors = cmc.batlowS(np.arange(len(regions)))
     handles = []
     for index, region in enumerate(regions):
         q = evaluated.loc[evaluated.region.eq(region)]
-        color, marker = colors[index], markers[index % len(markers)]
+        color, marker = colors[index], markers[index]
         ax.scatter(q.lon, q.lat, s=q.collocations * .18, marker=marker, color=color,
                    edgecolors="#505050", linewidths=.2, alpha=.8, transform=ccrs.PlateCarree(), zorder=3)
         handles.append(Line2D([], [], color=color, marker=marker, markersize=3.5, ls="none",

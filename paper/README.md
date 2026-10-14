@@ -53,3 +53,21 @@ Exports include plotted values, source hashes and script/style hashes. Generated
 color-vision and grayscale previews still require visual review; their existence
 alone does not constitute a passed accessibility check. Captions and private
 figure-QA records accompany the deliverables.
+
+`python -m paper.review_bundle --registry /private/paper_numbers.json
+--output-dir /private/review_batch` renders the currently implemented subset,
+compiles the tables, collects captions and assembles final-size contact PDFs.
+It explicitly lists missing main figures and rejects mixed registry hashes.
+Keep shared review versions immutable; render later changes into a new batch.
+
+The `derive_*` modules extract plotting arrays from existing OOF or gridded
+caches, validate them against saved summaries, and write CSV/provenance pairs.
+Include these with `paper.numbers --derived-dir PATH --derive-claims` before
+plotting. Unique collocations, repeated prediction events, site-months, and
+area-weighted seasonal cells remain separate units of analysis.
+
+`paper.fetch_case_rgb` downloads NASA GIBS context imagery for the prescribed
+platform/date/box. Daily mosaics are not guaranteed single-granule imagery and
+are never retrieval inputs. `paper.prepare_archive` creates a private candidate
+and records public predecessor metadata; it neither creates a remote deposit
+nor publishes, reserves a DOI, tags a release, or uploads collocation data.
