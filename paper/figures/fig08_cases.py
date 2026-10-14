@@ -6,6 +6,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
 from matplotlib.colors import BoundaryNorm, ListedColormap
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -14,6 +15,7 @@ import pandas as pd
 from PIL import Image
 
 from paper.figures import figstyle as style
+from paper.figures import difference_encoding as signs
 from paper.numbers import Registry, digest
 
 
@@ -108,12 +110,15 @@ def make(registry_path, image_dir, output):
                 mesh = ax.pcolormesh(lon, lat, np.ma.masked_invalid(z), cmap=cmap,
                                      norm=BoundaryNorm(levels, cmap.N), shading="auto",
                                      transform=ccrs.PlateCarree(), rasterized=True)
+                if c == 5:
+                    signs.add_positive_stipple(ax, mesh, z)
                 ax.add_feature(cfeature.OCEAN.with_scale("110m"), facecolor="white", edgecolor="none", zorder=3)
                 if c == 1:
                     full8 = values("full8_branch")
                     if np.nanmin(full8) < .5 < np.nanmax(full8):
-                        ax.contour(lon, lat, full8, levels=[.5], colors="black", linewidths=.4,
-                                   transform=ccrs.PlateCarree(), zorder=4)
+                        contour = ax.contour(lon, lat, full8, levels=[.5], colors="black", linewidths=.4,
+                                             transform=ccrs.PlateCarree(), zorder=4)
+                        contour.set_path_effects([pe.Stroke(linewidth=1.1, foreground="white"), pe.Normal()])
                 colorbars[c] = mesh
             decorate(ax, bounds, c == 0)
             style.panel_label(ax, "abcdefghijklmnopqr"[r * 6 + c], x=0, y=1.015)
@@ -124,6 +129,9 @@ def make(registry_path, image_dir, output):
         bar = fig.colorbar(colorbars[c], cax=cax, orientation="horizontal", extend=extend)
         bar.set_ticks([-.5, 0, .5] if c == 5 else [0, .5, 1])
         bar.set_label(label)
+    fig.legend(handles=signs.sign_handles(), loc="lower right", bbox_to_anchor=(.98, .114),
+               ncol=2, fontsize=6.5, handlelength=1.5)
+    evidence.append(signs.provenance())
     for name in ("derived/case_display", "derived/case_geolocation"):
         item = registry.payload["tables"][name]
         evidence.append({"table": name, "source_file": item["source_file"],
@@ -132,12 +140,12 @@ def make(registry_path, image_dir, output):
                  pd.concat([pixels.assign(record="science_pixel"), geometry.assign(record="geolocation")], ignore_index=True),
                  registry_path, evidence, __file__, raster=True)
     (Path(output) / "Fig08_caption.md").write_text(
-        "Development-case diagnostics: Kansas dust (top), Amazonia smoke (middle), and North American "
-        "transported smoke (bottom). Columns show daily GIBS true color, probability, QA2 DAOD, "
-        "expected-value DAOD, unscreened LG25, and their difference. Black contours delimit full8 "
-        "availability. Zero DAOD is grey; missing is white, hatched within the swath in difference "
-        "panels. Dates/platforms match; daily RGB mosaics need not represent the exact labelled "
-        "L2 granule start time. These are diagnostic cases, not independent validation.\n")
+        "Development cases: Kansas dust, Amazonia smoke, North American transported smoke (top-bottom). "
+        "Columns show daily GIBS true color, probability, QA2 DAOD, expected-value DAOD, unscreened LG25, "
+        "and EV-minus-LG25. White-haloed black contours delimit full8 availability. Zero DAOD is grey; "
+        "missing is white, diagonally hatched within swaths in difference panels. Dots mark strictly "
+        "positive differences, not significance; zero/negative differences are undotted. Daily RGB "
+        "mosaics need not match labelled L2 start times. Diagnostic cases, not independent validation.\n")
     plt.close(fig)
 
 

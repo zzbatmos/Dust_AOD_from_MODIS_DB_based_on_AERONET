@@ -22,6 +22,7 @@ import pandas as pd
 from dbdust.config import CONFIG
 from paper.numbers import Registry, digest
 from paper.figures import figstyle as style
+from paper.figures import difference_encoding as signs
 
 MAP_TABLE = "derived/all_seasonal_maps"
 METRIC_TABLE = "derived/all_seasonal_map_metrics"
@@ -160,6 +161,8 @@ def draw_map(ax, grid, geography, difference=False, left_labels=False, bottom_la
     mesh = ax.pcolormesh(x, y, np.ma.masked_invalid(np.where(z == 0, np.nan, z)),
                          cmap=cmap, norm=BoundaryNorm(levels, cmap.N),
                          transform=ccrs.PlateCarree(), rasterized=True)
+    if difference:
+        signs.add_positive_stipple(ax, mesh, z)
     ax.add_geometries(geography["ocean"], ccrs.PlateCarree(), facecolor="white", edgecolor="none", zorder=3)
     ax.add_geometries(geography["coastline"], ccrs.PlateCarree(), facecolor="none", edgecolor="#4D4D4D", lw=.4, zorder=4)
     ax.gridlines(crs=ccrs.PlateCarree(), xlocs=np.arange(-180, 181, 30), ylocs=np.arange(-60, 61, 30),
@@ -204,6 +207,8 @@ def build_figure(grids, geography, difference=False):
     handles = [Patch(facecolor=style.ZERO_GREY, edgecolor="none", label="Exact zero"),
                Patch(facecolor="#E0E0E0" if difference else "white", edgecolor="#BDBDBD",
                      hatch="////" if difference else None, label="Missing land" if difference else "Missing")]
+    if difference:
+        handles.append(signs.sign_handles()[0])
     fig.legend(handles=handles, loc="lower left", bbox_to_anchor=(.02, .036), fontsize=6.5)
     fig.text(.02, .012, "* E6: separate full_common_E6 support; all other rows: core_common. Not a paired E6/core comparison.",
              fontsize=6.5, va="bottom")
@@ -237,7 +242,8 @@ def caption(difference):
             "not the displayed core CALIOP mean. E6 versus core-method differences are not paired "
             "comparisons. Song is the saved 550-nm field; CALIOP is transferred from 532 to 550 nm "
             "using the frozen dust Angstrom exponent before averaging. " +
-            ("Differences span -0.15 to +0.15; missing land is light grey with diagonal hatching. " if difference else
+            ("Differences span -0.15 to +0.15; missing land is light grey with diagonal hatching. "
+             "Dots mark strictly positive differences, not significance; zero and negative differences are undotted. " if difference else
              "Absolute values span 0 to 0.5; missing is white. ") +
             "Colorbar extensions indicate out-of-range values without altering data. Exact zeros "
             "are grey; ocean is white. Gridlines are 30 degrees with sparse outer-edge geographic "
@@ -245,20 +251,25 @@ def caption(difference):
             "arrays. CALIOP is a comparison, not dust truth.\n")
 
 
-def make(registry_path, output, geography_directory=DEFAULT_GEOGRAPHY):
+def make(registry_path, output, geography_directory=DEFAULT_GEOGRAPHY, page="both"):
+    if page not in ("both", "absolute", "difference"):
+        raise ValueError("Unknown S13 page")
     before = digest(Path(registry_path))
     data, grids, evidence = select(Registry.read(registry_path))
     geography, geography_sources = local_geography(geography_directory)
     evidence.append(dict(geography_sources=geography_sources, rendering="native pcolormesh, no interpolation",
                          map_shape=[90, 72], absolute_panels=[8, 4], difference_panels=[7, 4]))
     for difference, stem in ((False, "FigS13a_all_seasonal_maps"), (True, "FigS13b_all_seasonal_differences")):
+        if page != "both" and difference != (page == "difference"):
+            continue
         fig = build_figure(grids, geography, difference)
         try:
             check_layout(fig)
             if digest(Path(registry_path)) != before:
                 raise RuntimeError("Registry changed during rendering")
             exported = data.loc[data.estimator.ne("CALIOP")] if difference else data
-            style.export(fig, output, stem, exported, registry_path, evidence, __file__, raster=True)
+            page_evidence = evidence + ([signs.provenance()] if difference else [])
+            style.export(fig, output, stem, exported, registry_path, page_evidence, __file__, raster=True)
             (Path(output) / (stem.split("_")[0] + "_caption.md")).write_text(caption(difference))
         finally:
             plt.close(fig)
@@ -269,8 +280,9 @@ def main(argv=None):
     parser.add_argument("--registry", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--geography-directory", type=Path, default=DEFAULT_GEOGRAPHY)
+    parser.add_argument("--page", choices=("both", "absolute", "difference"), default="both")
     args = parser.parse_args(argv)
-    make(args.registry, args.output_dir, args.geography_directory)
+    make(args.registry, args.output_dir, args.geography_directory, args.page)
 
 
 if __name__ == "__main__":

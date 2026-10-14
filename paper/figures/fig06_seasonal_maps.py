@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from paper.figures import figstyle as style
+from paper.figures import difference_encoding as signs
 from paper.numbers import Registry
 
 
@@ -46,6 +47,8 @@ def draw_map(ax, frame, value, difference=False):
     mesh = ax.pcolormesh(x, y, np.ma.masked_invalid(z), cmap=cmap,
                          norm=BoundaryNorm(levels, cmap.N), transform=ccrs.PlateCarree(),
                          rasterized=True)
+    if difference:
+        signs.add_positive_stipple(ax, mesh, z)
     ax.add_feature(cfeature.OCEAN.with_scale("110m"), facecolor="white", edgecolor="none", zorder=3)
     ax.coastlines(resolution="110m", linewidth=.4, color="#4D4D4D", zorder=4)
     grid = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
@@ -93,19 +96,22 @@ def make(registry_path, output):
                                    extend="both" if col else "max")
                 bar.set_ticks([-.15, 0, .15] if col else [0, .25, .5])
                 bar.set_label("DAOD difference (550 nm)" if col else "DAOD (550 nm)")
+    fig.legend(handles=signs.sign_handles(), loc="lower left", bbox_to_anchor=(.56, .088),
+               ncol=2, fontsize=6.5, handlelength=1.5)
     evidence = [{"table": name, "source_file": registry.payload["tables"][name]["source_file"],
                  "source_sha256": registry.payload["tables"][name]["source_sha256"],
                  "derivation": registry.payload["tables"][name]["derivation"]}
                 for name in ("derived/seasonal_maps", "derived/seasonal_region_boxes", "derived/seasonal_map_metrics")]
+    evidence.append(signs.provenance())
     style.export(fig, output, "Fig06_seasonal_maps",
                  pd.concat([data.assign(record="grid"), boxes.assign(record="region_boundary")], ignore_index=True),
                  registry_path, evidence, __file__, raster=True)
     (Path(output) / "Fig06_caption.md").write_text(
         "Seasonal expected-value DAOD and differences from CALIOP on common native-grid land support. "
-        "DJF includes December 2016. Zero DAOD is grey; missing is white, with missing land hatched "
-        "in difference panels. JJA outlines: Sahara, Sahel, Middle East, Central Asia, East Asian deserts, "
-        "SW North America, India, East China, Amazonia/Cerrado, southern Africa, boreal North America, "
-        "Siberia, and mainland SE Asia. All three months must be valid; seasons are equal-month means.\n")
+        "DJF includes December 2016. Zero DAOD is grey; missing is white, with missing land diagonally "
+        "hatched in difference panels. Dots mark strictly positive differences, not significance; "
+        "zero and negative differences are undotted. JJA outlines show the comparison regions. "
+        "All three months must be valid; seasons are equal-month means.\n")
     plt.close(fig)
 
 
