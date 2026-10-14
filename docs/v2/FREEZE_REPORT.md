@@ -2,7 +2,7 @@
 
 ## State
 
-Implementation in progress on `release/v2.0.0`, based on spec commit
+Local implementation and verification complete on `release/v2.0.0`, based on spec commit
 `41a791e6a91f2d55f9e58e6bee848ba9f1647359`. This is not approval to publish.
 No model refitting, calibration, estimator selection or thresholds changed.
 Existing v1 scripts, experimental artifacts and the dirty original worktree
@@ -77,7 +77,10 @@ collocations and unpublished performance tables remain private for archive
 review; the freeze does not authorize their public redistribution.
 
 All 26 product files (December 2016 through December 2017, both grids) were
-repackaged using code commit `f959c27d17c8d1ebf73889c9da6b71e50c42af04`.
+repackaged using code commit `2bb442ab12bd9db380589e6c78919efd83dc83be`.
+The earlier candidate is retained privately; every scientific array is identical
+between the two candidates. Only provenance metadata changed. The final configured
+suite passed all 238 tests without skips, and installed-wheel verification passed.
 Every mapped field agrees exactly with the original sufficient statistics;
 every product passes value/count/missing invariants. The actual monthly
 product passed strict CF-1.8 (524/524). All source grids have equal valid-AOD
