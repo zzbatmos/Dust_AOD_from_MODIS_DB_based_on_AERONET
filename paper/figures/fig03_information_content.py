@@ -7,6 +7,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.colors import BoundaryNorm
 from matplotlib.lines import Line2D
 import cartopy.crs as ccrs
 import numpy as np
@@ -127,12 +128,24 @@ def build(frames, geography):
     x, y, z = annual_grid(frames["annual"])
     b.set_global()
     mesh = b.pcolormesh(x, y, np.ma.masked_invalid(z), transform=ccrs.PlateCarree(), cmap=style.CMAP_P,
-                       vmin=0, vmax=1, rasterized=True)
+                       norm=BoundaryNorm(np.linspace(0, 1, 11), style.CMAP_P.N), rasterized=True)
     b.add_geometries(geography["ocean"], ccrs.PlateCarree(), facecolor="white", edgecolor="none", zorder=3)
     b.add_geometries(geography["coastline"], ccrs.PlateCarree(), facecolor="none", edgecolor="#555555", lw=.35, zorder=4)
+    b.gridlines(xlocs=np.arange(-180, 181, 30), ylocs=np.arange(-60, 61, 30),
+                linewidth=.2, color="#BDBDBD")
+    xmin, xmax = b.get_xlim()
+    ymin, ymax = b.get_ylim()
+    for latitude, label in ((-60, "60S"), (0, "0"), (60, "60N")):
+        _, py = b.projection.transform_point(0, latitude, ccrs.PlateCarree())
+        b.text(-.025, (py-ymin)/(ymax-ymin), label, transform=b.transAxes,
+               ha="right", va="center", fontsize=6.5)
+    for longitude, label in ((-120, "120W"), (0, "0"), (120, "120E")):
+        px, _ = b.projection.transform_point(longitude, 0, ccrs.PlateCarree())
+        b.text((px-xmin)/(xmax-xmin), -.04, label, transform=b.transAxes,
+               ha="center", va="top", fontsize=6.5)
     b.set_title("Annual Aqua: January-December 2017", pad=10)
     style.panel_label(b, "b", x=-.09, y=1.06)
-    bar = fig.colorbar(mesh, cax=fig.add_axes([.63, .59, .27, .015]), orientation="horizontal", ticks=[0, .5, 1])
+    bar = fig.colorbar(mesh, cax=fig.add_axes([.63, .565, .27, .015]), orientation="horizontal", ticks=[0, .5, 1])
     bar.set_label("full8 / valid-AOD counts")
     c = fig.add_axes([.205, .17, .235, .25])
     base = fig.add_axes([.08, .17, .09, .25], sharey=c)

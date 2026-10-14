@@ -4,7 +4,7 @@ Read the saved inversion cache in chunks and retain distinct wavelength-specific
 reference_valid cohorts. Verify source formula/masks without executing source
 mains; compare native fractions against saved grouped rows and tail statistics
 against the original CSV. Native 1020 only: no 550-nm transfer, fitting, or SDA
-conversion. These corrected display arrays await author acceptance.
+conversion. The qualified presentation was author-approved on 2026-10-14.
 """
 from __future__ import annotations
 
@@ -23,9 +23,10 @@ from dbdust.config import CONFIG, config_path
 from paper.numbers import digest
 
 WAVES = (675, 1020)
+AUTHOR_ACCEPTANCE = "approved_2026-10-14"
 ATOL = 1e-12  # Numerical reproduction tolerance, not a scientific threshold.
 SEMANTICS = {
-    "coarse_fraction_display": "Corrected candidate S1, author acceptance pending. Distinct "
+    "coarse_fraction_display": "S1 qualified presentation approved_2026-10-14. Distinct "
     "wavelength-specific reference_valid inversion archive cohorts, not paired wavelengths, "
     "the historical six-site cohort, or held-out ML validation. cmf is inversion coarse/total "
     "EXTINCTION AOD, not SDA. Native1020 uses frozen experimental1020 LR47.308 and PLDR "
@@ -194,7 +195,7 @@ def derive(source_root, chunksize=100000):
         finite = np.isfinite(expected)
         formula_checks.append(dict(saved_column=target, cohort="grouped_rows_formula_check_only", n=len(grouped),
             n_finite=int(finite.sum()), max_abs_error=float(np.max(abs(actual[finite] - expected[finite]))) if finite.any() else np.nan,
-            author_acceptance="pending"))
+            author_acceptance=AUTHOR_ACCEPTANCE))
     columns = ["Site", "date", "Time(hh:mm:ss)"] + [f"{field}[{w}nm]" for w in WAVES
         for field in ("AOD_Extinction-Total", "AOD_Extinction-Coarse", "Lidar_Ratio", "Depolarization_Ratio")]
     parts = []
@@ -218,7 +219,7 @@ def derive(source_root, chunksize=100000):
                 backscatter_raw=braw, backscatter_fraction=b, native_extinction_raw=fraw, native_extinction_fraction=f))
             parts.append(part.assign(wavelength=wave, reference="experimental1020_native" if wave == WAVES[1] else "old675LR56",
                 role="primary_native" if wave == WAVES[1] else "sensitivity", cohort="reference_valid",
-                fixed_lr_sr=fixed_lr, author_acceptance="pending"))
+                fixed_lr_sr=fixed_lr, author_acceptance=AUTHOR_ACCEPTANCE))
     check(offset, calibration["raw_cache_rows"], "archive/cache_rows", exact=True)
     points = pd.concat(parts, ignore_index=True).sort_values(["wavelength", "source_row"], ignore_index=True)
     if points.duplicated(["wavelength", "source_row"]).any():
@@ -232,7 +233,7 @@ def derive(source_root, chunksize=100000):
         for name, value in measured.items():
             check(value, row[name], f"tail/{wave}/{name}", exact=name in ("n", "n_gt_0p85"))
     tail = saved_tail.assign(tail_threshold=recipe["tail_threshold"], cmf_upper=recipe["cmf_upper"],
-                            sda_wavelength_nm=schema["SDA_wavelength_nm"], author_acceptance="pending")
+                            sda_wavelength_nm=schema["SDA_wavelength_nm"], author_acceptance=AUTHOR_ACCEPTANCE)
     for path, fingerprint in sources.items():
         if digest(Path(path)) != fingerprint:
             raise RuntimeError("Source changed during extraction: " + path)
@@ -262,7 +263,7 @@ def main(argv=None):
             table.to_csv(path, index=False)
             path.with_suffix(".provenance.json").write_text(json.dumps(dict(output_sha256=digest(path), sources=sources,
                 semantics=SEMANTICS[name], script_sha256=digest(Path(__file__)), rows=len(table), checks=checks,
-                fixed_recipe=recipe, numerical_check_atol=ATOL, author_acceptance="pending"), indent=2, allow_nan=False) + "\n")
+                fixed_recipe=recipe, numerical_check_atol=ATOL, author_acceptance=AUTHOR_ACCEPTANCE), indent=2, allow_nan=False) + "\n")
         for path in sorted(Path(temporary).iterdir()):
             os.replace(path, output / path.name)
     print(f"S1 arrays: { {name: len(frame) for name, frame in tables.items()} }; {len(checks)} checks passed")

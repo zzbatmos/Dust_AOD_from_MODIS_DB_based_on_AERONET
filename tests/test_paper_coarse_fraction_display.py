@@ -118,7 +118,7 @@ def test_distinct_cohorts_strict_tail_zero_and_unclipped_cmf(cache, tables):
         assert part.loc[9, "native_extinction_fraction"] == 0
         assert part.loc[9, "inversion_cmf"] == 0
         assert part.loc[6, "inversion_cmf"] > 1
-        assert part.cohort.eq("reference_valid").all() and part.author_acceptance.eq("pending").all()
+        assert part.cohort.eq("reference_valid").all() and part.author_acceptance.eq("approved_2026-10-14").all()
     assert cache["ids"][675] != cache["ids"][1020]
     old = points.loc[points.wavelength.eq(675)]
     assert old.role.eq("sensitivity").all() and old.fixed_lr_sr.eq(56).all()
@@ -202,7 +202,9 @@ def test_cli_sidecars_and_no_overwrite(cache, tmp_path):
         registered = ingest(path, "derived/" + name)
         assert side["output_sha256"] == digest(path) == registered["source_sha256"]
         assert side["script_sha256"] == digest(Path(coarse.__file__))
-        assert side["author_acceptance"] == "pending" and len(side["checks"]) == 20
+        assert side["author_acceptance"] == "approved_2026-10-14" and len(side["checks"]) == 20
+        assert registered["records"] and all(row["author_acceptance"] == "approved_2026-10-14"
+                                               for row in registered["records"])
     with pytest.raises(FileExistsError):
         coarse.main(args)
 
@@ -217,11 +219,11 @@ def renderer():
 def registry(tables):
     return Registry(dict(tables={"derived/" + name: dict(records=frame.to_dict("records"), columns=list(frame),
         source_file="/synthetic/" + name, source_sha256="synthetic", derivation=dict(
-            semantics=coarse.SEMANTICS[name], fixed_recipe=tables[3], author_acceptance="pending"))
+            semantics=coarse.SEMANTICS[name], fixed_recipe=tables[3], author_acceptance="approved_2026-10-14"))
         for name, frame in tables[0].items()}))
 
 
-def test_renderer_layout_and_corrected_pending_caption(renderer, registry, monkeypatch, tmp_path):
+def test_renderer_layout_and_approved_qualified_caption(renderer, registry, monkeypatch, tmp_path):
     frames, evidence = renderer.select(registry)
     assert len(evidence) == 3
     monkeypatch.setattr(renderer.Registry, "read", lambda _: registry)
@@ -232,6 +234,10 @@ def test_renderer_layout_and_corrected_pending_caption(renderer, registry, monke
         assert fig.get_figwidth() / renderer.style.MM == pytest.approx(190)
         assert fig.get_figheight() / renderer.style.MM <= 230
         assert raster and set(data.table_kind) == set(frames)
+        from matplotlib.text import Text
+        text = " ".join(artist.get_text() for artist in fig.findobj(Text)).lower()
+        assert "pending" not in text and "candidate" not in text
+        assert "not held-out validation" in text
         exports.append(stem)
         Path(output).mkdir(exist_ok=True)
 
@@ -241,7 +247,9 @@ def test_renderer_layout_and_corrected_pending_caption(renderer, registry, monke
     renderer.make(path, tmp_path / "figures")
     assert exports == ["FigS01_coarse_fraction"]
     caption = (tmp_path / "figures/FigS01_caption.md").read_text()
-    for term in ("pending author acceptance", "not final design approval", "NOT SDA", "No 550-nm transfer", "separate", "old675LR56 dust-fraction sensitivity"):
+    assert "pending" not in caption.lower() and "candidate" not in caption.lower()
+    for term in ("NOT SDA", "No 550-nm transfer", "separate", "old675LR56 dust-fraction sensitivity",
+                 "experimental1020 native", "not the historical six-site paired cohort", "does not make the archive diagnostic independent"):
         assert term in caption
 
 
@@ -256,7 +264,7 @@ def test_archive_sized_count_annotations_fit(renderer, registry):
         renderer.plt.close(figure)
 
 
-@pytest.mark.parametrize("problem", ["pooled", "clipped_cmf", "accepted", "wrong_role", "duplicate", "clip_order", "tails"])
+@pytest.mark.parametrize("problem", ["pooled", "clipped_cmf", "accepted", "pending", "pending_sidecar", "wrong_role", "duplicate", "clip_order", "tails"])
 def test_registry_integrity_refused(renderer, registry, problem):
     points = registry.payload["tables"]["derived/coarse_fraction_display"]["records"]
     if problem == "pooled":
@@ -264,8 +272,10 @@ def test_registry_integrity_refused(renderer, registry, problem):
     elif problem == "clipped_cmf":
         for row in points:
             row["inversion_cmf"] = min(row["inversion_cmf"], 1)
-    elif problem == "accepted":
-        points[0]["author_acceptance"] = "accepted"
+    elif problem in ("accepted", "pending"):
+        points[0]["author_acceptance"] = problem
+    elif problem == "pending_sidecar":
+        registry.payload["tables"]["derived/coarse_fraction_tail"]["derivation"]["author_acceptance"] = "pending"
     elif problem == "wrong_role":
         points[0]["role"] = "primary_native"
     elif problem == "duplicate":

@@ -1,4 +1,4 @@
-"""Registry-only corrected candidate S1; author acceptance remains pending."""
+"""Registry-only S1 archive diagnostic, qualified presentation approved 2026-10-14."""
 from __future__ import annotations
 
 import argparse
@@ -18,15 +18,18 @@ from paper.figures.figS13_all_seasonal_maps import check_layout
 
 TABLES = dict(points="coarse_fraction_display", tail="coarse_fraction_tail", checks="coarse_fraction_formula_checks")
 WAVES = (675, 1020)
+AUTHOR_ACCEPTANCE = "approved_2026-10-14"
 HEX_GRID = 40  # Display resolution only; no selection or scientific binning.
 
 
 def select(registry):
     frames = {key: registry.table("derived/" + name) for key, name in TABLES.items()}
     points, tail, checks = (frames[k] for k in TABLES)
-    for frame in frames.values():
-        if not frame.author_acceptance.eq("pending").all():
-            raise ValueError("This candidate cannot claim final author acceptance")
+    for key, frame in frames.items():
+        metadata = registry.payload["tables"]["derived/" + TABLES[key]]["derivation"]
+        if (not frame.author_acceptance.eq(AUTHOR_ACCEPTANCE).all()
+                or metadata.get("author_acceptance") != AUTHOR_ACCEPTANCE):
+            raise ValueError("Require the author-approved 2026-10-14 qualified presentation")
     if (len(tail) != len(WAVES) or set(tail.wavelength) != set(WAVES)
             or tail.wavelength.duplicated().any() or not tail.subset.eq("reference_valid").all()):
         raise ValueError("Wrong wavelength-specific reference_valid tails")
@@ -79,7 +82,7 @@ def select(registry):
 
 def build_figure(frames):
     fig = plt.figure(figsize=(style.DOUBLE, 110 * style.MM))
-    fig.text(.02, .98, "Corrected candidate | Inversion coarse-mode extinction fraction, not SDA", fontsize=7, va="top")
+    fig.text(.02, .98, "Inversion coarse-mode extinction fraction, not SDA", fontsize=7, va="top")
     points, tail = frames["points"], frames["tail"]
     upper = tail.cmf_upper.iloc[0]
     collections = []
@@ -124,14 +127,14 @@ def build_figure(frames):
         lines.append(f"{wave} nm > {row.tail_threshold:g}: {100 * row.fraction_gt_0p85:.2f}%\n"
                      f"{int(row.n_gt_0p85):,} / {int(row.n):,}")
     fig.text(.745, .20, "\n".join(lines), fontsize=6.5, va="top", linespacing=1.5)
-    fig.text(.02, .025, "Author acceptance pending; not final design approval. Archive reference_valid cohorts, not held-out validation.", fontsize=6.5)
+    fig.text(.02, .025, "Archive reference_valid cohorts, not held-out validation; native 1020-nm primary and 675-nm old56 sensitivity.", fontsize=6.5)
     return fig
 
 
 def caption(frames):
     tail = frames["tail"].set_index("wavelength")
     a, b = tail.loc[WAVES[0]], tail.loc[WAVES[1]]
-    return ("Corrected candidate Figure S1, pending author acceptance; not final design approval. "
+    return ("Figure S1. Fixed-formula inversion archive diagnostics. "
         "The horizontal quantity is the AERONET inversion coarse-mode extinction fraction "
         "(coarse extinction AOD / total extinction AOD), NOT SDA. The saved SDA proxy is at "
         f"{int(a.sda_wavelength_nm)} nm and is not used. (a) Native 675-nm old675LR56 dust-fraction sensitivity, "
