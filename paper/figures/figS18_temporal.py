@@ -128,7 +128,9 @@ def make(registry_path, output):
         "Site-month means require at least three collocations. Seasonal cycles require six represented calendar "
         "months per site: symbols show median site-specific correlations and lines their 5th-95th percentile "
         "spread, not confidence intervals. Counts distinguish finite correlations from eligible sites; constant "
-        "predictions can make correlation undefined. Anomalies subtract each site's calendar-month mean and "
+        "predictions can make correlation undefined. Seasonal summaries can therefore use different "
+        "finite-correlation site subsets and are not a paired skill ranking. "
+        "Anomalies subtract each site's calendar-month mean and "
         "require at least three represented years for that month. Right-hand symbols show pooled site-month "
         "anomaly correlations with saved 95% site-bootstrap intervals. Held-out-site statistics are averaged "
         "equally across the two repeats; predictions are not averaged. " + support_note + "\n")

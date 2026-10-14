@@ -5,6 +5,7 @@ import argparse
 import copy
 import importlib.metadata
 import json
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -156,7 +157,8 @@ def make(registry_path, output):
             "created_utc": datetime.now(timezone.utc).isoformat(), "inputs": hashes,
             "registry_file": str(registry_path), "registry_sha256": hashes[str(registry_path)],
             "registry_code_commit": registry.payload.get("code_commit"),
-            "code_commit": None, "code_commit_note": "No git operations; script/style SHA256 identify executed code.",
+            "code_commit": subprocess.check_output(["git", "rev-parse", "HEAD"],
+                                                     cwd=Path(__file__).resolve().parents[2], text=True).strip(),
             "script_sha256": digest(Path(__file__)), "style_sha256": digest(Path(style.__file__)),
             "paired_table": paired_source, "derivation": paired_source["derivation"],
             "extraction_registry_hash_note": "Historical extraction dependency, not the current render registry hash.",
