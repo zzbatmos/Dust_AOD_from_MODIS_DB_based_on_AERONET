@@ -1,0 +1,29 @@
+{
+  "algorithm": "SHA-256",
+  "inputs": {
+    "17_refv2_R1/C/SHORTLIST_v1.json": {
+      "sha256": "132e55eac42b1cfd8bf32eea7a5aaf3341323ee6f9164a441f418127f12a95ac",
+      "bytes": 58419
+    },
+    "17_refv2_R1/REFERENCE_V2_R1_ALL_CANDIDATES_RECORDS_v1.parquet": {
+      "sha256": "96f85f3550ff343a2cc10c01fbd2b58027bfa9eb7e07e20cfe312c7182520628",
+      "bytes": 4241306601
+    },
+    "20_refv2_R2a/REFERENCE_DECISION_v1.json": {
+      "sha256": "26db05e43b2928a54788f7c9f6996290ed04d3db9ba96fa99dd65804bb7e64bb",
+      "bytes": 3044
+    },
+    "18_refv2_R1b/C/R1B_DECISIONS_v1.json": {
+      "sha256": "a7d2ef8ea94c3e744e6c43f008fd04d4f1f6bd785f900ecaf4b14551521b47aa",
+      "bytes": 672509
+    },
+    "21_refv2_R1c/R1C_DECISIONS_v2.json": {
+      "sha256": "329c952c907270c23581a3b3c3996f268fddc30f6b46f4aa867f16098aabdbc6",
+      "bytes": 10696
+    },
+    "22_R3a/tables/variant_design_gate.csv": {
+      "sha256": "0b855d4196be563087fdf3fc53c600edf009a8dac11b0a4f9ff8550adfd375fc",
+      "bytes": 10181
+    }
+  }
+}
