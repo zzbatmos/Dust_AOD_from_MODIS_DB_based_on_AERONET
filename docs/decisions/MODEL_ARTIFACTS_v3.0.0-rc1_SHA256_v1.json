@@ -1,0 +1,21 @@
+{
+  "algorithm_version": "3.0.0-rc1",
+  "manifest_sha256": "5b19d05d974e92328b9915a1eb245e2a6403d610918501de353d25062d6e9c14",
+  "configuration_sha256": "f83d011846175abb95b28ede88356c6c547764d0f02f1caabc85e06197c74e36",
+  "files": {
+    "noSSA5/postprocessor.npz": "1cc2b1aa2a310439ef14ad6672c16275014e1d35e5a3695d498906266ad880b1",
+    "full8/positive_fraction.ubj": "297ea1fc094e640ed7c3607318c6d6eff1d4a711012dcf57e524fc7dca3b8844",
+    "full8/pair.json": "5defc578403bff6174fb54c5e66e17a5fd79074bac380f446887b33f339bc01b",
+    "noSSA5/pair.json": "5defc578403bff6174fb54c5e66e17a5fd79074bac380f446887b33f339bc01b",
+    "noSSA5/classifier.ubj": "60a31bc8d43078097fa45f40caf275df603c9c59593c962e054788f29f4bc332",
+    "full8/classifier.ubj": "646e210530cb8f49a9f70fabd9e24cc1f4454664b7df8f06088d5fa236902b4d",
+    "full8/postprocessor.npz": "79ccf41b0ce13cc547ad7e2c2ac8cf735df1cfb5214bf58936bbad2131f9d979",
+    "noSSA5/direct_fraction.ubj": "84359ccacbccbde1496fc3a41802f0eaa3073b62adc54f97c349f303dcaf1a9a",
+    "noSSA5/metadata.json": "9a06fac2fbf74560b29e7ea41fbdf0127a083b9052e0b3291bdd04787aa894f7",
+    "full8/direct_fraction.ubj": "a9b4f625812447ec2a5fdb105df63cd0dcebaad1ddbd0d71fcfbd78a1f146742",
+    "noSSA5/positive_fraction.ubj": "c1c42e75c07c513133bdbfff4f15fa6c38eeb2ec17b3cf9e1d0e384aa55ba493",
+    "noSSA5/smear_curve.npz": "c6d4485ef2c410794fa1a361aedb9799580ac50429bb58b959c227e20d2e8b3b",
+    "full8/smear_curve.npz": "ee879c9f55bc0595c757dcd3516776e476e133bd87471fc9f9e7af4e9e936408",
+    "full8/metadata.json": "fef4172a094269800a51634b66c081f5da6b5be27e02a92100091ccbfd8bdf84"
+  }
+}

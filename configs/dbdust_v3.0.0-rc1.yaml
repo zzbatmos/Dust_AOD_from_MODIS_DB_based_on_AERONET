@@ -119,7 +119,7 @@ runtime:
 artifacts:
   root: models/v3.0.0-rc1
   manifest: MANIFEST.sha256
-  manifest_sha256: PENDING_STAGE2_BUILD
+  manifest_sha256: 5b19d05d974e92328b9915a1eb245e2a6403d610918501de353d25062d6e9c14
   branch_files:
   - classifier.ubj
   - positive_fraction.ubj

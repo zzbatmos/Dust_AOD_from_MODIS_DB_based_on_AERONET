@@ -1,0 +1,18 @@
+{
+  "Eastern": "2026-11-22T07:55:49.579229-05:00",
+  "opening_i_passed": true,
+  "opening_i_max_golden_difference": 2.220446049250313e-16,
+  "opening_ii_passed": true,
+  "opening_ii_splits": 27,
+  "opening_ii_branch_checks": 54,
+  "opening_ii_max_routed_difference": 0.0,
+  "point_target": "C5_f",
+  "model_manifest_sha256": "5b19d05d974e92328b9915a1eb245e2a6403d610918501de353d25062d6e9c14",
+  "final_configuration_sha256": "f83d011846175abb95b28ede88356c6c547764d0f02f1caabc85e06197c74e36",
+  "pretraining_configuration_sha256": "1dc265c4edc229ff32ff6fa3d035f0d24b777aeca57196fa9980cd4e61e8cf6d",
+  "configuration_change_after_fit": "Artifact manifest SHA only; scientific fields unchanged",
+  "predictor_loaded_without_code_changes": true,
+  "algorithm_version": "3.0.0-rc1",
+  "product_format": "record-1.0",
+  "evaluation_protocol_sha256": "084bb63534aedda819d61e7e74b39112ff3b3c475c998a1a66316c9f3fa9707e"
+}
