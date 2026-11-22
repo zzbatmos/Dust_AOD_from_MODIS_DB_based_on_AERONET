@@ -1,0 +1,170 @@
+{
+  "Eastern": "2026-11-22T07:37:53.487063-05:00",
+  "passed": true,
+  "condition": "Amendment1 configuration selector checks before training",
+  "frozen_test_counts": {
+    "tests": 238,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "selector_unset_default": "configs/dbdust_v2.0.0.yaml",
+  "golden_cases": [
+    {
+      "case": "Kansas_20250314",
+      "bit_identical_all_variables": true,
+      "whole_file_identical": false,
+      "expected_sha256": "18627024c1b09d0ba5e7f0f0c19931c4a863c1ec79e65c0398254df97b1c7786",
+      "actual_sha256": "31657eb9107be9fc4592940bc5c8f53603dd11aae9cfae6307d0aabd2901f132",
+      "variables": [
+        {
+          "name": "lat",
+          "bit_identical": true
+        },
+        {
+          "name": "lon",
+          "bit_identical": true
+        },
+        {
+          "name": "branch",
+          "bit_identical": true
+        },
+        {
+          "name": "dust_probability",
+          "bit_identical": true
+        },
+        {
+          "name": "qa_tier",
+          "bit_identical": true
+        },
+        {
+          "name": "dust_fraction_conditional",
+          "bit_identical": true
+        },
+        {
+          "name": "daod550_qa2",
+          "bit_identical": true
+        },
+        {
+          "name": "daod550_ev",
+          "bit_identical": true
+        },
+        {
+          "name": "aod550_db",
+          "bit_identical": true
+        },
+        {
+          "name": "db_aerosol_type",
+          "bit_identical": true
+        }
+      ]
+    },
+    {
+      "case": "Amazonia_20240922",
+      "bit_identical_all_variables": true,
+      "whole_file_identical": false,
+      "expected_sha256": "4c012265f2be79db733e297aa7f412948ba98f09c6c1cdd93d8fb4aada180e90",
+      "actual_sha256": "88444f1b57c7526593ac2482e467a7c04539122997b631a7460f1e7648d4023f",
+      "variables": [
+        {
+          "name": "lat",
+          "bit_identical": true
+        },
+        {
+          "name": "lon",
+          "bit_identical": true
+        },
+        {
+          "name": "branch",
+          "bit_identical": true
+        },
+        {
+          "name": "dust_probability",
+          "bit_identical": true
+        },
+        {
+          "name": "qa_tier",
+          "bit_identical": true
+        },
+        {
+          "name": "dust_fraction_conditional",
+          "bit_identical": true
+        },
+        {
+          "name": "daod550_qa2",
+          "bit_identical": true
+        },
+        {
+          "name": "daod550_ev",
+          "bit_identical": true
+        },
+        {
+          "name": "aod550_db",
+          "bit_identical": true
+        },
+        {
+          "name": "db_aerosol_type",
+          "bit_identical": true
+        }
+      ]
+    },
+    {
+      "case": "NorthAmerica_20170829",
+      "bit_identical_all_variables": true,
+      "whole_file_identical": false,
+      "expected_sha256": "2e01b3c0ac5ba9e9aff4f4144c021ef674cb0699b5590957b80773666e01424e",
+      "actual_sha256": "3f2b6e67c27d0ec24b90f40dd99e51a4b83643e2825ec135a2ff71ccd5eb4b02",
+      "variables": [
+        {
+          "name": "lat",
+          "bit_identical": true
+        },
+        {
+          "name": "lon",
+          "bit_identical": true
+        },
+        {
+          "name": "branch",
+          "bit_identical": true
+        },
+        {
+          "name": "dust_probability",
+          "bit_identical": true
+        },
+        {
+          "name": "qa_tier",
+          "bit_identical": true
+        },
+        {
+          "name": "dust_fraction_conditional",
+          "bit_identical": true
+        },
+        {
+          "name": "daod550_qa2",
+          "bit_identical": true
+        },
+        {
+          "name": "daod550_ev",
+          "bit_identical": true
+        },
+        {
+          "name": "aod550_db",
+          "bit_identical": true
+        },
+        {
+          "name": "db_aerosol_type",
+          "bit_identical": true
+        }
+      ]
+    }
+  ],
+  "explicit_v3_selector_passed": true,
+  "missing_selector_path_fails_closed": true,
+  "v3_pretraining_configuration_sha256": "1dc265c4edc229ff32ff6fa3d035f0d24b777aeca57196fa9980cd4e61e8cf6d",
+  "predictor_sha256": "b2f228230ee0ad75ccaed205f80162a599963ca1c95f2f0a32cc8d5d10a6e533",
+  "reader_sha256": "da52d28a473f72b89aec328b65e30ffe1d03b3e7043f49e148fb6c466a3f1b19",
+  "config_loader_sha256": "914b3f4e880310df74f15164ff0e74c6d1b0a17b35cc1596e00934b23a69834d",
+  "frozen_test_log_sha256": "62fb16f990e3f76e2bad429936833317c9938c8a4ce9ffc2ce898e0fb14a14f6",
+  "evaluation_protocol_sha256": "084bb63534aedda819d61e7e74b39112ff3b3c475c998a1a66316c9f3fa9707e",
+  "training_started": false
+}
